@@ -1,0 +1,281 @@
+name: Build and Deploy
+
+on:
+  # push:
+  #   branches:
+  #     - master
+  #     - main
+  #     - develop
+  # pull_request:
+  #   branches:
+  #     - master
+  #     - main
+  #     - develop
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: docker.io
+  DOCKER_IMAGE_NAME: app-box-server
+  SERVER_DIR: ./server
+
+jobs:
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+      build-env: ${{ steps.env.outputs.build_env }}
+      env-short: ${{ steps.env.outputs.env_short }}
+      commit-msg: ${{ steps.commit.outputs.commit_msg }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Determine build environment
+        id: env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "build_env=production" >> $GITHUB_OUTPUT
+            echo "env_short=prod" >> $GITHUB_OUTPUT
+          else
+            echo "build_env=development" >> $GITHUB_OUTPUT
+            echo "env_short=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=${{ steps.env.outputs.env_short }}-latest
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Get commit message
+        id: commit
+        run: |
+          COMMIT_MSG="$(git log -1 --pretty=%s 2>/dev/null || true)"
+          if [ -z "$COMMIT_MSG" ]; then
+            COMMIT_MSG="No commit message"
+          fi
+          {
+            echo "commit_msg<<EOF"
+            echo "$COMMIT_MSG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.SERVER_DIR }}
+          file: ${{ env.SERVER_DIR }}/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            ENV=${{ steps.env.outputs.build_env }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Send WeChat Work notification
+        if: always()
+        env:
+          WECHAT_WEBHOOK_URL: ${{ secrets.WECHAT_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WECHAT_WEBHOOK_URL" ]; then
+            echo "WECHAT_WEBHOOK_URL not configured, skip notification"
+            exit 0
+          fi
+          IMAGE_TAGS_RAW="${{ steps.meta.outputs.tags }}"
+          IMAGE_TAG_LINES="$(echo "$IMAGE_TAGS_RAW" | sed '/^$/d; s/^/- /')"
+          BUILD_ID="${{ github.run_number }}"
+          SERVER_ENV="${{ steps.env.outputs.build_env }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          SHORT_SHA="$(echo "${{ github.sha }}" | cut -c1-7)"
+          COMMIT_MSG_RAW="${{ steps.commit.outputs.commit_msg }}"
+          if [ -z "$COMMIT_MSG_RAW" ]; then
+            COMMIT_MSG_RAW="No commit message"
+          fi
+          COMMIT_MSG="$(echo "$COMMIT_MSG_RAW" | tr '\n' ' ' | sed "s/\"/'/g; s/  */ /g; s/^ *//; s/ *$//")"
+          BUILD_TIME="$(date '+%Y-%m-%d %H:%M')"
+
+          if [ "${{ steps.build.outcome }}" == "success" ]; then
+            STATUS="Build succeeded"
+          else
+            STATUS="Build failed"
+          fi
+
+          MESSAGE="$(printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" \
+            "**Commit: $COMMIT_MSG**" \
+            "$STATUS: $BUILD_TIME" \
+            "Platform: GitHub Actions" \
+            "Repository: ${{ github.repository }}" \
+            "Run Number: $BUILD_ID" \
+            "Branch: ${{ github.ref_name }}" \
+            "Commit SHA: $SHORT_SHA" \
+            "Triggered By: ${{ github.actor }}" \
+            "Environment: $SERVER_ENV" \
+            "Image Tags:"$'\n'"$IMAGE_TAG_LINES" \
+            "Details: [View run]($RUN_URL)")"
+
+          curl -X POST "$WECHAT_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"msgtype\": \"markdown\",
+              \"markdown\": {
+                \"content\": \"$MESSAGE\"
+              }
+            }"
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request' && success()
+    steps:
+      - name: Deploy via SSH
+        id: deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          BUILD_ENV: ${{ needs.build.outputs.build-env }}
+          ENV_SHORT: ${{ needs.build.outputs.env-short }}
+          IMAGE_FULL: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ needs.build.outputs.env-short }}-latest
+          REMOTE_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          REMOTE_DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DEPLOY_DOCKER_NETWORK: ${{ secrets.DEPLOY_DOCKER_NETWORK }}
+          PROD_CONTAINER_IP: ${{ secrets.PROD_CONTAINER_IP }}
+          DEV_CONTAINER_IP: ${{ secrets.DEV_CONTAINER_IP }}
+          PROD_HOST_PORT: ${{ secrets.PROD_HOST_PORT }}
+          DEV_HOST_PORT: ${{ secrets.DEV_HOST_PORT }}
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+          DEV_ENV_FILE: ${{ secrets.DEV_ENV_FILE }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          port: ${{ secrets.DEPLOY_SSH_PORT || 22 }}
+          envs: IMAGE_FULL,BUILD_ENV,ENV_SHORT,REMOTE_DOCKER_USERNAME,REMOTE_DOCKER_PASSWORD,DEPLOY_DOCKER_NETWORK,PROD_CONTAINER_IP,DEV_CONTAINER_IP,PROD_HOST_PORT,DEV_HOST_PORT,PROD_ENV_FILE,DEV_ENV_FILE
+          script: |
+            set -e
+
+            NETWORK_NAME="${DEPLOY_DOCKER_NETWORK:-1panel-network}"
+
+            if [ "$BUILD_ENV" = "production" ]; then
+              CONTAINER_NAME="app-box-server"
+              HOST_PORT="${PROD_HOST_PORT:-8090}"
+              CONTAINER_IP="${PROD_CONTAINER_IP:-172.18.0.12}"
+              ENV_FILE_PATH="${PROD_ENV_FILE:-/opt/app-box-server/.env.production}"
+            else
+              CONTAINER_NAME="app-box-server-dev"
+              HOST_PORT="${DEV_HOST_PORT:-8091}"
+              CONTAINER_IP="${DEV_CONTAINER_IP:-172.18.0.13}"
+              ENV_FILE_PATH="${DEV_ENV_FILE:-/opt/app-box-server/.env.development}"
+            fi
+
+            echo "Environment: $BUILD_ENV"
+            echo "Container: $CONTAINER_NAME"
+            echo "Image: $IMAGE_FULL"
+            echo "Port mapping: ${HOST_PORT}:8090"
+            echo "Network: $NETWORK_NAME"
+
+            if [ -n "$REMOTE_DOCKER_USERNAME" ] && [ -n "$REMOTE_DOCKER_PASSWORD" ]; then
+              echo "$REMOTE_DOCKER_PASSWORD" | docker login -u "$REMOTE_DOCKER_USERNAME" --password-stdin
+            fi
+
+            docker pull "$IMAGE_FULL"
+
+            docker stop "$CONTAINER_NAME" 2>/dev/null || true
+            docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+            NETWORK_ARGS=""
+            if [ -n "$NETWORK_NAME" ]; then
+              NETWORK_ARGS="--network $NETWORK_NAME"
+            fi
+
+            IP_ARGS=""
+            if [ -n "$CONTAINER_IP" ]; then
+              IP_ARGS="--ip $CONTAINER_IP"
+            fi
+
+            ENV_FILE_ARGS=""
+            if [ -n "$ENV_FILE_PATH" ] && [ -f "$ENV_FILE_PATH" ]; then
+              ENV_FILE_ARGS="--env-file $ENV_FILE_PATH"
+            fi
+
+            # shellcheck disable=SC2086
+            docker run -d \
+              --name "$CONTAINER_NAME" \
+              --restart unless-stopped \
+              -p "${HOST_PORT}:8090" \
+              $NETWORK_ARGS \
+              $IP_ARGS \
+              $ENV_FILE_ARGS \
+              "$IMAGE_FULL"
+
+            docker image prune -f
+            echo "Deploy completed: $CONTAINER_NAME"
+
+      - name: Send WeChat Work notification (Deploy)
+        if: always()
+        env:
+          WECHAT_WEBHOOK_URL: ${{ secrets.WECHAT_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WECHAT_WEBHOOK_URL" ]; then
+            echo "WECHAT_WEBHOOK_URL not configured, skip notification"
+            exit 0
+          fi
+          BUILD_ID="${{ github.run_number }}"
+          SERVER_ENV="${{ needs.build.outputs.build-env }}"
+          DEPLOY_IMAGE="${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ needs.build.outputs.env-short }}-latest"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          SHORT_SHA="$(echo "${{ github.sha }}" | cut -c1-7)"
+          COMMIT_MSG_RAW="${{ needs.build.outputs.commit-msg }}"
+          if [ -z "$COMMIT_MSG_RAW" ]; then
+            COMMIT_MSG_RAW="No commit message"
+          fi
+          COMMIT_MSG="$(echo "$COMMIT_MSG_RAW" | tr '\n' ' ' | sed "s/\"/'/g; s/  */ /g; s/^ *//; s/ *$//")"
+          RELEASE_TIME="$(date '+%Y-%m-%d %H:%M')"
+
+          if [ "${{ steps.deploy.outcome }}" == "success" ]; then
+            STATUS="Deploy succeeded"
+          else
+            STATUS="Deploy failed"
+          fi
+
+          MESSAGE="$(printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" \
+            "**Commit: $COMMIT_MSG**" \
+            "$STATUS: $RELEASE_TIME" \
+            "Platform: GitHub Actions" \
+            "Repository: ${{ github.repository }}" \
+            "Run Number: $BUILD_ID" \
+            "Branch: ${{ github.ref_name }}" \
+            "Commit SHA: $SHORT_SHA" \
+            "Triggered By: ${{ github.actor }}" \
+            "Environment: $SERVER_ENV" \
+            "Image: $DEPLOY_IMAGE" \
+            "Details: [View run]($RUN_URL)")"
+          curl -X POST "$WECHAT_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"msgtype\": \"markdown\",
+              \"markdown\": {
+                \"content\": \"$MESSAGE\"
+              }
+            }"
