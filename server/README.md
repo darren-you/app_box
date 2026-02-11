@@ -6,7 +6,7 @@
 
 - 管理员登录：`POST /api/v1/auth/admin/login`
 - 管理员信息：`GET /api/v1/admin/auth/me`
-- 星烁管理接口透传（默认 provider=stellar）：
+- 星烁管理接口透传（启用 `STELLAR_ENABLED=true` 后生效）：
   - `GET /api/v1/admin/users`
   - `GET /api/v1/admin/users/:id/planets`
   - `PUT /api/v1/admin/users/:id`

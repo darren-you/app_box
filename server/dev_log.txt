@@ -1,0 +1,33 @@
+darrenyou@DarrendeMac-mini shell % ./deploy.sh production
+[INFO] 开始执行部署流水线
+[INFO] BUILD_ENV: production
+[INFO] 元数据文件: /tmp/app-box-server.deploy.LCuCFJ
+[INFO] 项目: app-box-server
+[INFO] 分支: master
+[INFO] 构建环境: production
+[INFO] 本地镜像仓库: app-box-server
+[INFO] 主标签: prod-20260211-183052-c66be38
+[INFO] 开始构建镜像: app-box-server:prod-20260211-183052-c66be38
+[+] Building 5.1s (3/3) FINISHED                                                                                                                                                                     docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                                                                 0.0s
+ => => transferring dockerfile: 546B                                                                                                                                                                                 0.0s
+ => ERROR [internal] load metadata for docker.io/library/golang:1.25-alpine                                                                                                                                          5.1s
+ => ERROR [internal] load metadata for docker.io/library/alpine:3.22                                                                                                                                                 5.1s
+------
+ > [internal] load metadata for docker.io/library/golang:1.25-alpine:
+------
+------
+ > [internal] load metadata for docker.io/library/alpine:3.22:
+------
+Dockerfile:15
+--------------------
+  13 |         go build -trimpath -ldflags="-s -w" -o /out/app-box-server ./cmd/server
+  14 |     
+  15 | >>> FROM alpine:3.22
+  16 |     
+  17 |     WORKDIR /app
+--------------------
+ERROR: failed to build: failed to solve: alpine:3.22: failed to resolve source metadata for docker.io/library/alpine:3.22: failed to do request: Head "https://registry-1.docker.io/v2/library/alpine/manifests/3.22": EOF
+[INFO] 通知发送成功: stage=build, status=failed
+[ERROR] 构建失败，终止部署
+darrenyou@DarrendeMac-mini shell % 

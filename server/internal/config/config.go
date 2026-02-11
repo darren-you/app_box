@@ -75,9 +75,9 @@ func Load() (*Config, error) {
 			Password: getEnv("ADMIN_PASSWORD", "pass_the_appbox_admin"),
 		},
 		Provider: ProviderConfig{
-			Default: strings.TrimSpace(getEnv("DEFAULT_APP_PROVIDER", "stellar")),
+			Default: strings.TrimSpace(getEnv("DEFAULT_APP_PROVIDER", "")),
 			Stellar: StellarProviderConfig{
-				Enabled:     getEnvBool("STELLAR_ENABLED", true),
+				Enabled:     getEnvBool("STELLAR_ENABLED", false),
 				Name:        strings.TrimSpace(getEnv("STELLAR_PROVIDER_NAME", "stellar")),
 				BaseURL:     normalizeBaseURL(getEnv("STELLAR_API_BASE_URL", "http://127.0.0.1:8080/api/v1")),
 				GatewayKey:  strings.TrimSpace(getEnv("STELLAR_GATEWAY_KEY", "")),
@@ -102,7 +102,7 @@ func Load() (*Config, error) {
 		}
 	}
 
-	if cfg.Provider.Default == "" {
+	if cfg.Provider.Default == "" && cfg.Provider.Stellar.Enabled {
 		cfg.Provider.Default = cfg.Provider.Stellar.Name
 	}
 	return cfg, nil
