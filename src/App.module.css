@@ -1,0 +1,264 @@
+.layout {
+  height: 100vh;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.sidebar {
+  height: 100vh;
+  padding: 20px 14px;
+  border-right: 1px solid var(--line);
+  background: #f8f8f8;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.sidebarTop {
+  display: grid;
+  gap: 12px;
+}
+
+.sidebarBottom {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.menuList {
+  display: grid;
+  gap: 0;
+}
+
+.sidebar button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.18s ease;
+}
+
+.menuLabelWithIcon {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menuGlyph {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f3748;
+  flex-shrink: 0;
+}
+
+.menuGlyph svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.menuLabel {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.appLogo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: cover;
+  display: block;
+}
+
+.sidebar button:hover {
+  background: #eee;
+}
+
+.sidebar button:active {
+  background: #eee;
+}
+
+.activeMenu {
+  background: #eee !important;
+  color: var(--text-main) !important;
+}
+
+.logout {
+  width: 100%;
+}
+
+.logout .menuLabel,
+.logout .menuGlyph {
+  color: #111;
+}
+
+.content {
+  height: 100vh;
+  padding: 22px;
+  background: #fff;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.workspace {
+  display: grid;
+  gap: 14px;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.workspace > section {
+  min-height: 0;
+}
+
+.workspaceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.topTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.topTabs button {
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-main);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.topTabs button:hover {
+  background: #eee;
+}
+
+.topTabs button:active {
+  background: #eee;
+}
+
+.activeTopTab {
+  background: #eee !important;
+  color: var(--text-main) !important;
+}
+
+.placeholderPanel {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.placeholderPanel p {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.placeholderPanel p + p {
+  margin-top: 8px;
+}
+
+.loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  background: #fff;
+}
+
+.iosSpinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2.5px solid #d7d7d7;
+  border-top-color: #111;
+  animation: ios-spin 0.8s linear infinite;
+}
+
+@keyframes ios-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+}
+
+.errorPage h2,
+.errorPage p {
+  margin: 0;
+}
+
+.errorPage button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 16px;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    height: auto;
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .sidebar {
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    overflow: visible;
+  }
+
+  .menuList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .content {
+    height: auto;
+    padding: 14px;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 640px) {
+  .menuList {
+    grid-template-columns: 1fr;
+  }
+}
