@@ -9,7 +9,7 @@ SERVER_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 # =========================
 PROJECT_NAME="app-box-server"
 DOCKER_REGISTRY="docker.io"
-DOCKER_IMAGE_NAME="app-box-server"
+DOCKER_IMAGE_NAME="darrenyou/app-box-server"
 DOCKERFILE_PATH="$SERVER_DIR/Dockerfile"
 DOCKER_BUILD_CONTEXT="$SERVER_DIR"
 LOCAL_IMAGE_REPO="$DOCKER_IMAGE_NAME"
@@ -25,20 +25,21 @@ IMAGE_TAG=""
 PUSH_LATEST="true"
 LOCAL_ARCHIVE_DIR="/tmp"
 
-# 远程部署（SSH）
+# 构建产物上传（Git 仓库）
+ARTIFACT_GIT_REPO="git@github.com:darren-you/docker_images.git"
+
+# 远程部署（服务器已配置 GitHub SSH Key，可直接 git pull）
 DEPLOY_HOST="124.221.158.155"
 DEPLOY_PORT="22"
 DEPLOY_USER="ubuntu"
-DEPLOY_SSH_PASSWORD="shlite@01"  # 为空则走 ssh key 或当前 ssh-agent
-DEPLOY_SSH_KEY_PATH=""  # 例如 /root/.ssh/id_rsa
+DEPLOY_SSH_PASSWORD="shlite@01"   # 为空则走 ssh key 或 ssh-agent
+DEPLOY_SSH_KEY_PATH=""            # 例如 /root/.ssh/id_rsa
 DEPLOY_SSH_OPTIONS="-o StrictHostKeyChecking=no"
 
-# 远程容器运行
+# 远程执行容器参数
+REMOTE_ARTIFACT_REPO_DIR="/deploy/docker_images"
 REMOTE_DOCKER_NETWORK="1panel-network"
 REMOTE_CONTAINER_PORT="8090"
-REMOTE_DEPLOY_DIR="/deploy/docker-container"
-REMOTE_KEEP_ARCHIVE="false"
-# 远程执行 Docker 时是否使用 sudo（当 ubuntu 无 docker.sock 权限时设为 true）
 REMOTE_DOCKER_USE_SUDO="true"
 
 PROD_CONTAINER_NAME="app-box-server"

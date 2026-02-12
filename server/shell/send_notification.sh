@@ -65,59 +65,52 @@ IMAGE_REPO="${IMAGE_REPO:-$DOCKER_IMAGE_NAME}"
 DEPLOY_IMAGE="${DEPLOY_IMAGE:-unknown}"
 BUILD_TIME="${BUILD_TIME:-$(now_time)}"
 DEPLOY_TIME="${DEPLOY_TIME:-$(now_time)}"
-DEPLOY_TARGET="${DEPLOY_TARGET:-${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PORT}}"
+DEPLOY_TARGET="${DEPLOY_TARGET:-${DEPLOY_USER:-unknown}@${DEPLOY_HOST:-unknown}:${DEPLOY_PORT:-22}}"
 DEPLOY_CONTAINER="${DEPLOY_CONTAINER:-unknown}"
-DEPLOY_PORT_MAPPING="${DEPLOY_PORT_MAPPING:-unknown}"
-DEPLOY_NETWORK="${DEPLOY_NETWORK:-$REMOTE_DOCKER_NETWORK}"
-
-TAG_LINES="- 无"
-if [[ -n "${IMAGE_TAGS_CSV:-}" ]]; then
-  TAG_LINES=""
-  IFS=',' read -r -a TAGS <<<"$IMAGE_TAGS_CSV"
-  for tag in "${TAGS[@]}"; do
-    [[ -z "$tag" ]] && continue
-    TAG_LINES+="- ${IMAGE_REPO}:${tag}"$'\n'
-  done
-fi
+DEPLOY_PORT_MAPPING="${DEPLOY_PORT_MAPPING:--}"
+DEPLOY_NETWORK="${DEPLOY_NETWORK:--}"
+DEPLOY_ARCHIVE_REMOTE="${DEPLOY_ARCHIVE_REMOTE:-unknown}"
+DEPLOY_ARTIFACT_WEB_URL="${DEPLOY_ARTIFACT_WEB_URL:-}"
 
 if [[ "$STATUS" == "success" ]]; then
   STATUS_TEXT="成功"
+  STATUS_ICON="✅"
 else
   STATUS_TEXT="失败"
+  STATUS_ICON="❌"
+fi
+
+ARTIFACT_ADDRESS_LINE="📦 产物地址：$DEPLOY_ARCHIVE_REMOTE"
+if [[ -n "$DEPLOY_ARTIFACT_WEB_URL" ]]; then
+  ARTIFACT_ADDRESS_LINE="📦 产物地址：[点击查看](${DEPLOY_ARTIFACT_WEB_URL})"
 fi
 
 if [[ "$STAGE" == "build" ]]; then
   CONTENT="$(cat <<EOF
-**[$PROJECT_NAME] 构建${STATUS_TEXT}**
-时间：$BUILD_TIME
-分支：$BUILD_BRANCH
-提交：$GIT_SHA
-提交信息：$COMMIT_MSG
-环境：$BUILD_ENV
-镜像仓库：$IMAGE_REPO
-镜像标签：
-$TAG_LINES
+**${STATUS_ICON} 构建${STATUS_TEXT}**
+🕒 时间：$BUILD_TIME
+🌿 分支：$BUILD_BRANCH
+📝 提交信息：$COMMIT_MSG
+🌐 环境：$BUILD_ENV
 EOF
 )"
 else
   CONTENT="$(cat <<EOF
-**[$PROJECT_NAME] 部署${STATUS_TEXT}**
-时间：$DEPLOY_TIME
-分支：$BUILD_BRANCH
-提交：$GIT_SHA
-提交信息：$COMMIT_MSG
-环境：$BUILD_ENV
-部署机器：$DEPLOY_TARGET
-部署容器：$DEPLOY_CONTAINER
-端口映射：$DEPLOY_PORT_MAPPING
-部署网络：$DEPLOY_NETWORK
-部署镜像：$DEPLOY_IMAGE
+**${STATUS_ICON} 部署${STATUS_TEXT}**
+🕒 时间：$DEPLOY_TIME
+🌿 分支：$BUILD_BRANCH
+📝 提交信息：$COMMIT_MSG
+🌐 环境：$BUILD_ENV
+🧱 部署容器：$DEPLOY_CONTAINER
+🔌 端口映射：$DEPLOY_PORT_MAPPING
+🕸️ 部署网络：$DEPLOY_NETWORK
+${ARTIFACT_ADDRESS_LINE}
 EOF
 )"
 fi
 
 if [[ -n "$ERROR_MSG" ]]; then
-  CONTENT+=$'\n'"错误信息：$ERROR_MSG"
+  CONTENT+=$'\n'"❗ 错误信息：$ERROR_MSG"
 fi
 
 PAYLOAD_CONTENT="$(json_escape "$CONTENT")"

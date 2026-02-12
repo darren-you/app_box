@@ -53,7 +53,7 @@ DEPLOY_STATUS="success"
 DEPLOY_ERROR=""
 if ! "$SCRIPT_DIR/remote_deploy.sh" --metadata-file "$META_FILE"; then
   DEPLOY_STATUS="failed"
-  DEPLOY_ERROR="远程部署执行失败"
+  DEPLOY_ERROR="构建产物上传及远程部署执行失败"
 fi
 
 DEPLOY_NOTIFY_CMD=("$SCRIPT_DIR/send_notification.sh" --stage deploy --status "$DEPLOY_STATUS" --metadata-file "$META_FILE")

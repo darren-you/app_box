@@ -45,6 +45,7 @@ BASE_REGISTRY_VALUE="${BASE_REGISTRY_VALUE%/}"
 BASE_CANDIDATES_RAW="${BASE_IMAGE_REGISTRY_CANDIDATES:-$BASE_REGISTRY_VALUE}"
 
 IMAGE_REPO="$LOCAL_IMAGE_REPO"
+IMAGE_NAME_SLUG="$(sanitize_tag_part "${IMAGE_REPO##*/}")"
 if [[ -n "${IMAGE_TAG:-}" ]]; then
   PRIMARY_TAG="$IMAGE_TAG"
 else
@@ -114,6 +115,7 @@ for registry in "${BUILD_REGISTRIES[@]-}"; do
   [[ -z "$registry" ]] && continue
   log_info "尝试基础镜像源构建: $registry"
   if docker build \
+    --platform "linux/amd64" \
     --build-arg "ENV=$BUILD_ENV_VALUE" \
     --build-arg "BASE_IMAGE_REGISTRY=$registry" \
     -f "$DOCKERFILE_PATH" \
@@ -150,7 +152,7 @@ else
 fi
 
 DEPLOY_IMAGE="${IMAGE_REPO}:${DEPLOY_TAG}"
-ARCHIVE_NAME="${PROJECT_NAME}-${ENV_SHORT}-${SHORT_SHA}-$(date +%Y%m%d%H%M%S).tar"
+ARCHIVE_NAME="${IMAGE_NAME_SLUG}_${ENV_SHORT}_${SHORT_SHA}_$(date +%Y%m%d%H%M%S).tar"
 ARCHIVE_PATH="${LOCAL_ARCHIVE_DIR%/}/${ARCHIVE_NAME}"
 rm -f "$ARCHIVE_PATH"
 
@@ -166,6 +168,7 @@ write_meta BUILD_TIME "$BUILD_TIME"
 write_meta GIT_SHA "$SHORT_SHA"
 write_meta COMMIT_MSG "$COMMIT_MSG"
 write_meta IMAGE_REPO "$IMAGE_REPO"
+write_meta IMAGE_NAME_SLUG "$IMAGE_NAME_SLUG"
 write_meta IMAGE_TAG_PRIMARY "$PRIMARY_TAG"
 write_meta IMAGE_TAGS_CSV "$TAGS_CSV"
 write_meta DEPLOY_IMAGE "$DEPLOY_IMAGE"
