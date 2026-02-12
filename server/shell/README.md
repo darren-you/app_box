@@ -4,6 +4,23 @@
 当前流程为：本地构建镜像并导出 tar -> 上传到 Git 制品仓库 -> SSH 到服务器 `git pull` 最新制品并 `docker load + run` -> 发送通知。
 固定参数（Git 仓库、服务器 SSH、容器参数、Webhook）统一写死在 `config.sh`。
 
+## 设计架构图
+
+```mermaid
+flowchart LR
+    A["Jenkins Build Step<br/>bash shell/deploy.sh production|development"] --> B["deploy.sh"]
+    B --> C["docker_build_push.sh<br/>docker build + docker save"]
+    C --> D["本地产物 tar"]
+    D --> E["remote_deploy.sh<br/>git push 产物到 docker_images 仓库"]
+    E --> F["GitHub: darren-you/docker_images<br/>镜像名/prod|dev/xxx.tar"]
+    E --> G["SSH 到服务器<br/>/deploy/docker_images"]
+    G --> H["git fetch/reset 最新代码"]
+    H --> I["docker load 产物 tar"]
+    I --> J["docker run 重建容器"]
+    J --> K["send_notification.sh<br/>企业微信通知"]
+    C --> K
+```
+
 制品路径规则：
 - 仓库内路径：`<镜像名>/<prod|dev>/<镜像名>_<prod|dev>_<short_sha>_<yyyymmddHHMMSS>.tar`
 - 示例：`app-box-server/prod/app-box-server_prod_bf4d19c_20260212142852.tar`
