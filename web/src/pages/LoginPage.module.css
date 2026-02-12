@@ -22,6 +22,20 @@
   z-index: 4;
 }
 
+.passwordBlock {
+  display: grid;
+  gap: 50px;
+}
+
+.loginImage {
+  width: 80px;
+  height: 80px;
+  display: block;
+  border-radius: 16px;
+  object-fit: cover;
+  justify-self: center;
+}
+
 .input {
   width: 100%;
   border: 1px solid var(--line);

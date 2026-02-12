@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import LightRays from '../components/LightRays';
+import loginTopImage from '../assets/login-top-image.png';
 import styles from './LoginPage.module.css';
 
 interface LoginPageProps {
@@ -43,16 +44,19 @@ export default function LoginPage({ onSubmit }: LoginPageProps): JSX.Element {
         saturation={1}
       />
       <form className={styles.form} onSubmit={handleSubmit}>
-        <input
-          id="password"
-          type="password"
-          className={styles.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="密码"
-          autoComplete="current-password"
-          required
-        />
+        <div className={styles.passwordBlock}>
+          <img src={loginTopImage} alt="AppBox" className={styles.loginImage} />
+          <input
+            id="password"
+            type="password"
+            className={styles.input}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="密码"
+            autoComplete="current-password"
+            required
+          />
+        </div>
 
         <button className={styles.button} type="submit" disabled={loading} aria-label="登录">
           {loading ? '...' : 'GO'}
