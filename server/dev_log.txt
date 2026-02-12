@@ -1,33 +1,44 @@
-darrenyou@DarrendeMac-mini shell % ./deploy.sh production
+Started by user Xdarren
+Running as SYSTEM
+Building in workspace /Users/darrenyou/.jenkins/workspace/app_box_server
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /Users/darrenyou/.jenkins/workspace/app_box_server/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url git@github.com:darren-you/app_box.git # timeout=10
+Fetching upstream changes from git@github.com:darren-you/app_box.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.50.1 (Apple Git-155)'
+ > git fetch --tags --force --progress -- git@github.com:darren-you/app_box.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision 79a9677ad102a7d76d1886b4aac8b270086ba863 (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 79a9677ad102a7d76d1886b4aac8b270086ba863 # timeout=10
+Commit message: "调整登录图像间距与尺寸」}】 wait instructions: no"
+ > git rev-list --no-walk c02257c7e03b29c90fcfd6c89e3bc1bc855d9605 # timeout=10
+[app_box_server] $ /bin/sh -xe /var/folders/5x/_yfp21sd5dx4gtkwkyfn760c0000gn/T/jenkins8032508260142062077.sh
++ sh server/shell/deploy.sh
 [INFO] 开始执行部署流水线
 [INFO] BUILD_ENV: production
-[INFO] 元数据文件: /tmp/app-box-server.deploy.LCuCFJ
+[INFO] 元数据文件: /tmp/app-box-server.deploy.j5ejC0
 [INFO] 项目: app-box-server
 [INFO] 分支: master
 [INFO] 构建环境: production
-[INFO] 本地镜像仓库: app-box-server
-[INFO] 主标签: prod-20260211-183052-c66be38
-[INFO] 开始构建镜像: app-box-server:prod-20260211-183052-c66be38
-[+] Building 5.1s (3/3) FINISHED                                                                                                                                                                     docker:desktop-linux
- => [internal] load build definition from Dockerfile                                                                                                                                                                 0.0s
- => => transferring dockerfile: 546B                                                                                                                                                                                 0.0s
- => ERROR [internal] load metadata for docker.io/library/golang:1.25-alpine                                                                                                                                          5.1s
- => ERROR [internal] load metadata for docker.io/library/alpine:3.22                                                                                                                                                 5.1s
-------
- > [internal] load metadata for docker.io/library/golang:1.25-alpine:
-------
-------
- > [internal] load metadata for docker.io/library/alpine:3.22:
-------
-Dockerfile:15
---------------------
-  13 |         go build -trimpath -ldflags="-s -w" -o /out/app-box-server ./cmd/server
-  14 |     
-  15 | >>> FROM alpine:3.22
-  16 |     
-  17 |     WORKDIR /app
---------------------
-ERROR: failed to build: failed to solve: alpine:3.22: failed to resolve source metadata for docker.io/library/alpine:3.22: failed to do request: Head "https://registry-1.docker.io/v2/library/alpine/manifests/3.22": EOF
+[INFO] 本地镜像仓库: darrenyou/app-box-server
+[INFO] 主标签: prod-20260212-171747-79a9677
+[INFO] 基础镜像候选源: mirror.ccs.tencentyun.com,docker.1panel.live,dockerproxy.com,registry.docker-cn.com,docker.io
+[INFO] 尝试基础镜像源构建: mirror.ccs.tencentyun.com
+ERROR: failed to connect to the docker API at unix:///Users/darrenyou/.docker/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/darrenyou/.docker/run/docker.sock: connect: no such file or directory
+[INFO] 尝试基础镜像源构建: docker.1panel.live
+ERROR: failed to connect to the docker API at unix:///Users/darrenyou/.docker/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/darrenyou/.docker/run/docker.sock: connect: no such file or directory
+[INFO] 尝试基础镜像源构建: dockerproxy.com
+ERROR: failed to connect to the docker API at unix:///Users/darrenyou/.docker/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/darrenyou/.docker/run/docker.sock: connect: no such file or directory
+[INFO] 尝试基础镜像源构建: registry.docker-cn.com
+ERROR: failed to connect to the docker API at unix:///Users/darrenyou/.docker/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/darrenyou/.docker/run/docker.sock: connect: no such file or directory
+[INFO] 尝试基础镜像源构建: docker.io
+ERROR: failed to connect to the docker API at unix:///Users/darrenyou/.docker/run/docker.sock; check if the path is correct and if the daemon is running: dial unix /Users/darrenyou/.docker/run/docker.sock: connect: no such file or directory
+[ERROR] 所有基础镜像源构建均失败，请检查网络或更换 BASE_IMAGE_REGISTRY_CANDIDATES
 [INFO] 通知发送成功: stage=build, status=failed
 [ERROR] 构建失败，终止部署
-darrenyou@DarrendeMac-mini shell % 
+Build step 'Execute shell' marked build as failure
+Finished: FAILURE

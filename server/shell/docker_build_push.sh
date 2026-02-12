@@ -30,6 +30,42 @@ ensure_meta_file
 require_cmd docker
 require_cmd git
 
+wait_for_docker_ready() {
+  local timeout="${DOCKER_READY_TIMEOUT:-45}"
+  local interval="${DOCKER_READY_INTERVAL:-3}"
+  local elapsed=0
+  local endpoint=""
+
+  if docker info >/dev/null 2>&1; then
+    return 0
+  fi
+
+  log_warn "Docker 服务未就绪，开始等待（超时 ${timeout}s）"
+  if [[ "$(uname -s)" == "Darwin" ]] && is_true "${DOCKER_AUTO_START_ON_DARWIN:-true}"; then
+    if command -v open >/dev/null 2>&1; then
+      log_info "尝试启动 Docker Desktop"
+      open -ga Docker >/dev/null 2>&1 || true
+    fi
+  fi
+
+  while (( elapsed < timeout )); do
+    sleep "$interval"
+    elapsed=$((elapsed + interval))
+    if docker info >/dev/null 2>&1; then
+      log_info "Docker 服务就绪（等待 ${elapsed}s）"
+      return 0
+    fi
+  done
+
+  endpoint="$(docker context inspect --format '{{(index .Endpoints "docker").Host}}' 2>/dev/null || true)"
+  if [[ -z "$endpoint" ]]; then
+    endpoint="${DOCKER_HOST:-unix:///var/run/docker.sock}"
+  fi
+  die "Docker 服务不可用，当前 endpoint: ${endpoint}。请确认 Docker Desktop/daemon 已启动，或在 Jenkins 中设置 DOCKER_HOST=unix:///var/run/docker.sock"
+}
+
+wait_for_docker_ready
+
 BRANCH_NAME="$(resolve_branch)"
 BRANCH_SAFE="$(sanitize_tag_part "$BRANCH_NAME")"
 SHORT_SHA="$(resolve_short_sha)"
