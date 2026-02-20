@@ -243,7 +243,15 @@ git_cmd() {
   GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git "$@"
 }
 
+mkdir -p "$REMOTE_ARTIFACT_REPO_DIR"
+if ! git config --global --get-all safe.directory 2>/dev/null | grep -Fx "$REMOTE_ARTIFACT_REPO_DIR" >/dev/null 2>&1; then
+  git config --global --add safe.directory "$REMOTE_ARTIFACT_REPO_DIR" >/dev/null 2>&1 || true
+fi
+
 if [[ -d "$REMOTE_ARTIFACT_REPO_DIR/.git" ]]; then
+  git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" reset --hard >/dev/null 2>&1 || true
+  git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" clean -fd >/dev/null 2>&1 || true
+  git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" remote set-url origin "$ARTIFACT_REPO" >/dev/null 2>&1 || true
   git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" fetch origin --prune
 else
   git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" init >/dev/null
@@ -253,9 +261,9 @@ else
 fi
 
 if git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" show-ref --verify --quiet "refs/remotes/origin/$ARTIFACT_BRANCH"; then
-  git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" checkout -B "$ARTIFACT_BRANCH" "origin/$ARTIFACT_BRANCH" >/dev/null
+  git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" checkout -f -B "$ARTIFACT_BRANCH" "origin/$ARTIFACT_BRANCH" >/dev/null
 else
-  git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" checkout -B "$ARTIFACT_BRANCH" >/dev/null
+  git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" checkout -f -B "$ARTIFACT_BRANCH" >/dev/null
 fi
 git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" reset --hard "origin/$ARTIFACT_BRANCH" >/dev/null 2>&1 || true
 git_cmd -C "$REMOTE_ARTIFACT_REPO_DIR" clean -fd >/dev/null 2>&1 || true
