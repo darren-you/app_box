@@ -78,9 +78,16 @@ else
 fi
 
 if [[ "$STAGE" == "build" ]]; then
-  CONTENT="$(cat <<EOF2
-**${STATUS_ICON} 前端构建${STATUS_TEXT}**
-🕒 时间：$BUILD_TIME
+  STAGE_LABEL="构建"
+  STAGE_TIME="$BUILD_TIME"
+else
+  STAGE_LABEL="部署"
+  STAGE_TIME="$DEPLOY_TIME"
+fi
+
+CONTENT="$(cat <<EOF2
+**${STATUS_ICON}${STAGE_LABEL}${PROJECT_NAME}**
+🕒 时间：$STAGE_TIME
 📦 项目：$PROJECT_NAME
 🌿 分支：$BUILD_BRANCH
 📝 提交信息：$COMMIT_MSG
@@ -88,20 +95,6 @@ if [[ "$STAGE" == "build" ]]; then
 📁 构建产物：$ARTIFACT_LOCAL_PATH
 EOF2
 )"
-else
-  CONTENT="$(cat <<EOF2
-**${STATUS_ICON} 前端部署${STATUS_TEXT}**
-🕒 时间：$DEPLOY_TIME
-📦 项目：$PROJECT_NAME
-🌿 分支：$BUILD_BRANCH
-📝 提交信息：$COMMIT_MSG
-🎯 目标机器：$DEPLOY_TARGET
-📁 远端产物：$DEPLOY_ARTIFACT_REMOTE
-👤 属主属组：$DEPLOY_REMOTE_OWNER
-🔐 权限：$DEPLOY_REMOTE_MODE
-EOF2
-)"
-fi
 
 if [[ -n "$ERROR_MSG" ]]; then
   CONTENT+=$'\n'"❗ 错误信息：$ERROR_MSG"

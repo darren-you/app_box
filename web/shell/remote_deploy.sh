@@ -75,13 +75,15 @@ else
 fi
 
 mkdir_cmd="mkdir -p \"${REMOTE_DEPLOY_BASE_DIR}\""
-reset_cmd="rm -rf \"${REMOTE_PROJECT_DIR}\" && mkdir -p \"${REMOTE_PROJECT_DIR}\""
+delete_cmd="rm -rf \"${REMOTE_PROJECT_DIR}\""
+create_cmd="mkdir -p \"${REMOTE_PROJECT_DIR}\""
 chmod_cmd="chmod -R ${REMOTE_MODE} \"${REMOTE_PROJECT_DIR}\""
 chown_cmd="chown -R ${REMOTE_OWNER}:${REMOTE_GROUP} \"${REMOTE_PROJECT_DIR}\""
 
 if [[ "$USE_SUDO" == "true" || "$USE_SUDO" == "1" || "$USE_SUDO" == "yes" ]]; then
   mkdir_cmd="sudo -n ${mkdir_cmd}"
-  reset_cmd="sudo -n ${reset_cmd}"
+  delete_cmd="sudo -n ${delete_cmd}"
+  create_cmd="sudo -n ${create_cmd}"
   chmod_cmd="sudo -n ${chmod_cmd}"
   chown_cmd="sudo -n ${chown_cmd}"
 fi
@@ -96,7 +98,10 @@ log_info "远端目录: $REMOTE_PROJECT_DIR"
 log_info "本地产物: $LOCAL_ARTIFACT_PATH"
 
 remote_exec "$mkdir_cmd"
-remote_exec "$reset_cmd"
+log_info "清理远端目录（若存在）: $REMOTE_PROJECT_DIR"
+remote_exec "$delete_cmd"
+log_info "重建远端目录: $REMOTE_PROJECT_DIR"
+remote_exec "$create_cmd"
 
 RSYNC_EXTRA=()
 if [[ "$USE_SUDO" == "true" || "$USE_SUDO" == "1" || "$USE_SUDO" == "yes" ]]; then

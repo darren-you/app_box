@@ -2,6 +2,7 @@
 
 本目录将前端发布拆分为 `build -> deploy -> notification` 三段，Jenkins 只需要执行 `deploy.sh`。
 流程：`npm install/build` -> 生成 `dist.zip` -> 通过 `rsync + ssh` 上传到服务器 `/deploy/项目名`（先删后传）-> 设置 `www-data:www-data` + `0755` -> 发送通知。
+通知标题格式：`✅/❌ + 构建/部署 + 项目名`，例如：`✅构建app-box-web`、`❌部署app-box-web`。
 
 ## 脚本清单
 

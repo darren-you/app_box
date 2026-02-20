@@ -87,7 +87,7 @@ fi
 
 if [[ "$STAGE" == "build" ]]; then
   CONTENT="$(cat <<EOF
-**${STATUS_ICON} 构建${STATUS_TEXT}**
+**${STATUS_ICON}构建${PROJECT_NAME}**
 🕒 时间：$BUILD_TIME
 🌿 分支：$BUILD_BRANCH
 📝 提交信息：$COMMIT_MSG
