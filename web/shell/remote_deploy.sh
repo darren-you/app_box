@@ -31,6 +31,7 @@ require_cmd ssh
 LOCAL_ARTIFACT_PATH="${ARTIFACT_LOCAL_PATH:-}"
 [[ -n "$LOCAL_ARTIFACT_PATH" ]] || die "metadata 缺少 ARTIFACT_LOCAL_PATH"
 [[ -f "$LOCAL_ARTIFACT_PATH" ]] || die "产物文件不存在: $LOCAL_ARTIFACT_PATH"
+REMOTE_ARTIFACT_NAME="$(basename "$LOCAL_ARTIFACT_PATH")"
 
 REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-$REMOTE_DEPLOY_PROJECT_DIR}"
 [[ -n "$REMOTE_PROJECT_DIR" ]] || die "REMOTE_PROJECT_DIR 不能为空"
@@ -110,11 +111,21 @@ fi
 
 "${RSYNC_CMD[@]}" "${RSYNC_EXTRA[@]}" -e "$RSYNC_RSH" "$LOCAL_ARTIFACT_PATH" "${TARGET_HOST}:${REMOTE_PROJECT_DIR}/"
 
+EXTRACT_CMD="cd \"${REMOTE_PROJECT_DIR}\" \
+&& unzip -oq \"${REMOTE_ARTIFACT_NAME}\" \
+&& if [ -d \"dist\" ]; then find \"dist\" -mindepth 1 -maxdepth 1 -exec mv -f {} . \\; && rmdir \"dist\" || true; fi \
+&& rm -f \"${REMOTE_ARTIFACT_NAME}\""
+if [[ "$USE_SUDO" == "true" || "$USE_SUDO" == "1" || "$USE_SUDO" == "yes" ]]; then
+  remote_exec "sudo -n bash -lc $(printf '%q' "$EXTRACT_CMD")"
+else
+  remote_exec "$EXTRACT_CMD"
+fi
+
 remote_exec "$chown_cmd"
 remote_exec "$chmod_cmd"
 
 DEPLOY_TIME_NOW="$(now_time)"
-DEPLOY_ARTIFACT_REMOTE="${REMOTE_PROJECT_DIR}/$(basename "$LOCAL_ARTIFACT_PATH")"
+DEPLOY_ARTIFACT_REMOTE="${REMOTE_PROJECT_DIR}/index.html"
 write_meta DEPLOY_TIME "$DEPLOY_TIME_NOW"
 write_meta DEPLOY_TARGET "${TARGET_HOST}:${DEPLOY_PORT}"
 write_meta DEPLOY_ARTIFACT_REMOTE "$DEPLOY_ARTIFACT_REMOTE"
