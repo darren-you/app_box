@@ -7,13 +7,11 @@ source "$SCRIPT_DIR/config.sh"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/common.sh"
 
-if [[ $# -gt 1 ]]; then
-  die "仅支持一个参数 BUILD_ENV，示例: bash shell/deploy.sh production"
+if [[ $# -ne 0 ]]; then
+  die "不支持传入 BUILD_ENV 参数，当前已固定为 production。请直接执行: bash shell/deploy.sh"
 fi
-if [[ $# -eq 1 ]]; then
-  BUILD_ENV="$1"
-fi
-validate_build_env "${BUILD_ENV:-}"
+
+BUILD_ENV="production"
 export BUILD_ENV
 
 META_FILE="${META_FILE:-$(mktemp "/tmp/${PROJECT_NAME}.deploy.XXXXXX")}"
@@ -27,7 +25,7 @@ if ! is_true "$KEEP_META_FILE"; then
 fi
 
 log_info "开始执行前端部署流水线"
-log_info "BUILD_ENV: $BUILD_ENV"
+log_info "BUILD_ENV: $BUILD_ENV (固定)"
 log_info "元数据文件: $META_FILE"
 
 BUILD_STATUS="success"

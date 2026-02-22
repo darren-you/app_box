@@ -23,13 +23,7 @@
 2. Jenkins 执行：
 
 ```bash
-bash web/shell/deploy.sh production
-```
-
-或：
-
-```bash
-bash web/shell/deploy.sh development
+bash web/shell/deploy.sh
 ```
 
 ## 本地调试
@@ -37,7 +31,7 @@ bash web/shell/deploy.sh development
 仅构建打包：
 
 ```bash
-BUILD_ENV=production bash web/shell/npm_build_package.sh
+bash web/shell/npm_build_package.sh
 ```
 
 仅执行上传（依赖已有 metadata）：
@@ -49,5 +43,5 @@ META_FILE=/tmp/app-box-web.meta bash web/shell/remote_deploy.sh --metadata-file 
 完整流程：
 
 ```bash
-bash web/shell/deploy.sh production
+bash web/shell/deploy.sh
 ```

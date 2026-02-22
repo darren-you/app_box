@@ -11,8 +11,8 @@ SERVER_DIR="$WEB_DIR"
 # =========================
 PROJECT_NAME="app-box-web"
 
-# npm 构建配置
-BUILD_ENV="${BUILD_ENV:-}"
+# npm 构建配置（固定 production）
+BUILD_ENV="production"
 NPM_INSTALL_CMD="npm ci"
 NPM_BUILD_CMD="npm run build"
 DIST_DIR="$WEB_DIR/dist"

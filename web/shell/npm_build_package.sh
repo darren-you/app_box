@@ -31,8 +31,7 @@ require_cmd npm
 require_cmd git
 require_cmd zip
 
-BUILD_ENV_VALUE="${BUILD_ENV:-}"
-validate_build_env "$BUILD_ENV_VALUE"
+BUILD_ENV_VALUE="production"
 SHORT_SHA="$(resolve_short_sha)"
 BRANCH_NAME="$(resolve_branch)"
 COMMIT_MSG="$(resolve_commit_msg)"
