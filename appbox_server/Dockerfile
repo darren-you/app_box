@@ -1,0 +1,30 @@
+ARG BASE_IMAGE_REGISTRY=mirror.ccs.tencentyun.com
+
+FROM ${BASE_IMAGE_REGISTRY}/library/golang:1.25-alpine AS builder
+
+WORKDIR /src
+
+RUN apk add --no-cache ca-certificates tzdata git
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -trimpath -ldflags="-s -w" -o /out/appbox_server ./cmd/server
+
+FROM ${BASE_IMAGE_REGISTRY}/library/alpine:3.22
+
+WORKDIR /app
+
+RUN apk add --no-cache ca-certificates tzdata
+
+ARG ENV=production
+ENV APP_ENV=${ENV}
+
+COPY --from=builder /out/appbox_server /usr/local/bin/appbox_server
+
+EXPOSE 8090
+
+ENTRYPOINT ["appbox_server"]

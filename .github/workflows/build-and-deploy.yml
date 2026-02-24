@@ -15,8 +15,8 @@ on:
 
 env:
   DOCKER_REGISTRY: docker.io
-  DOCKER_IMAGE_NAME: app-box-server
-  SERVER_DIR: ./server
+  DOCKER_IMAGE_NAME: appbox_server
+  SERVER_DIR: ./appbox_server
 
 jobs:
   build:
@@ -178,15 +178,15 @@ jobs:
             NETWORK_NAME="${DEPLOY_DOCKER_NETWORK:-1panel-network}"
 
             if [ "$BUILD_ENV" = "production" ]; then
-              CONTAINER_NAME="app-box-server"
+              CONTAINER_NAME="appbox_server"
               HOST_PORT="${PROD_HOST_PORT:-8090}"
               CONTAINER_IP="${PROD_CONTAINER_IP:-172.18.0.12}"
-              ENV_FILE_PATH="${PROD_ENV_FILE:-/opt/app-box-server/.env.production}"
+              ENV_FILE_PATH="${PROD_ENV_FILE:-/opt/appbox_server/.env.production}"
             else
-              CONTAINER_NAME="app-box-server-dev"
+              CONTAINER_NAME="appbox_server_dev"
               HOST_PORT="${DEV_HOST_PORT:-8091}"
               CONTAINER_IP="${DEV_CONTAINER_IP:-172.18.0.13}"
-              ENV_FILE_PATH="${DEV_ENV_FILE:-/opt/app-box-server/.env.development}"
+              ENV_FILE_PATH="${DEV_ENV_FILE:-/opt/appbox_server/.env.development}"
             fi
 
             echo "Environment: $BUILD_ENV"
