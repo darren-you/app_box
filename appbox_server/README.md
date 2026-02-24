@@ -56,14 +56,16 @@ git submodule update --init --recursive
 
 ```bash
 cd appbox_server
-bash ../deploy_shell/deploy_server/deploy.sh --config "$(pwd)/deploy_config.sh" --env production
+BuildBranch=origin/master BUILD_ENV=production \
+bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
 
 开发环境部署：
 
 ```bash
 cd appbox_server
-bash ../deploy_shell/deploy_server/deploy.sh --config "$(pwd)/deploy_config.sh" --env development
+BuildBranch=origin/develop BUILD_ENV=development \
+bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
 
 ## 与 appbox_web 对接

@@ -37,7 +37,7 @@ git submodule update --init --recursive
 
 ```bash
 cd appbox_web
-bash ../deploy_shell/deploy_web/deploy.sh --config "$(pwd)/deploy_config.sh"
+bash ../deploy_shell/deploy_web/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
 
 ## 菜单结构
