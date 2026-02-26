@@ -9,7 +9,6 @@ SERVER_DIR="$WEB_DIR"
 PROJECT_NAME="appbox_web"
 
 # npm 构建配置
-BUILD_ENV="production"
 NPM_INSTALL_CMD="npm ci"
 NPM_BUILD_CMD="npm run build"
 DIST_DIR="$WEB_DIR/dist"
