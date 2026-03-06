@@ -8,6 +8,9 @@ SERVER_DIR="$WEB_DIR"
 
 PROJECT_NAME="appbox_web"
 
+# web名称（浏览器Tab中显示的名称）
+WEB_NAME="AppBox"
+
 # npm 构建配置
 NPM_INSTALL_CMD="npm ci"
 NPM_BUILD_CMD="npm run build"

@@ -1,7 +1,11 @@
+# syntax=docker/dockerfile:1.7
+# check=skip=InvalidDefaultArgInFrom
 ARG BASE_IMAGE_REGISTRY
+ARG BUILDER_BASE_IMAGE
+ARG RUNTIME_BASE_IMAGE
 ARG PROJECT_NAME
 
-FROM ${BASE_IMAGE_REGISTRY}/library/golang:1.25-alpine AS builder
+FROM ${BASE_IMAGE_REGISTRY}/${BUILDER_BASE_IMAGE} AS builder
 
 WORKDIR /src
 
@@ -16,7 +20,7 @@ ARG PROJECT_NAME
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -trimpath -ldflags="-s -w" -o /out/${PROJECT_NAME} ./cmd/server
 
-FROM ${BASE_IMAGE_REGISTRY}/library/alpine:3.22
+FROM ${BASE_IMAGE_REGISTRY}/${RUNTIME_BASE_IMAGE}
 
 WORKDIR /app
 

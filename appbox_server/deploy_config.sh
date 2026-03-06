@@ -11,17 +11,22 @@ DOCKER_IMAGE_NAME="darrenyou/appbox_server"
 DOCKERFILE_PATH="$SERVER_DIR/Dockerfile"
 DOCKER_BUILD_CONTEXT="$SERVER_DIR"
 LOCAL_IMAGE_REPO="$DOCKER_IMAGE_NAME"
-BASE_IMAGE_REGISTRY="mirror.ccs.tencentyun.com"
-BASE_IMAGE_REGISTRY_CANDIDATES="mirror.ccs.tencentyun.com,docker.1panel.live,dockerproxy.com,registry.docker-cn.com,docker.io"
+IMAGE_NAME_SLUG="$PROJECT_NAME"
+# 基础镜像默认值由 deploy_shell/deploy_server/base_image_defaults.sh 统一维护。
 
-# 构建控制
-BUILD_ENV="${BUILD_ENV:-}"
+# 国内镜像源快速切换与失败重试配置
+REGISTRY_PRECHECK_ENABLED="true"
+REGISTRY_PULL_TIMEOUT_SECONDS="20"
+REGISTRY_PULL_RETRY_COUNT="2"
+REGISTRY_BUILD_TIMEOUT_SECONDS="0"
+REGISTRY_BUILD_RETRY_COUNT="1"
+REGISTRY_RETRY_SLEEP_SECONDS="2"
+
+# 构建控制（Jenkins 参数使用 BuildEnv=test/prod）
 IMAGE_TAG=""
 PUSH_LATEST="true"
 LOCAL_ARCHIVE_DIR="/tmp"
-
-# 构建产物上传
-ARTIFACT_GIT_REPO="git@github.com:darren-you/docker_images.git"
+DOCKER_READY_TIMEOUT="30"
 
 # 远程部署
 DEPLOY_HOST="124.221.158.155"
@@ -36,18 +41,26 @@ REMOTE_DOCKER_NETWORK="1panel-network"
 REMOTE_CONTAINER_PORT="8090"
 REMOTE_DOCKER_USE_SUDO="true"
 
+# 远端部署超时（秒）
+REMOTE_GIT_FETCH_TIMEOUT_SECONDS="120"
+REMOTE_DOCKER_LOAD_TIMEOUT_SECONDS="10"
+
+# 容器启动后稳定性观察窗口（秒）
+REMOTE_CONTAINER_STABILITY_SECONDS="5"
+
 PROD_CONTAINER_NAME="appbox_server"
 PROD_HOST_PORT="8090"
 PROD_CONTAINER_IP=""
 PROD_ENV_FILE="/opt/appbox_server/.env.production"
 PROD_LOG_PATH=""
 
-DEV_CONTAINER_NAME="appbox_server_dev"
-DEV_HOST_PORT="8091"
-DEV_CONTAINER_IP=""
-DEV_ENV_FILE="/opt/appbox_server/.env.development"
-DEV_LOG_PATH=""
+TEST_CONTAINER_NAME="appbox_server_dev"
+TEST_HOST_PORT="8091"
+TEST_CONTAINER_IP=""
+TEST_ENV_FILE="/opt/appbox_server/.env.development"
+TEST_LOG_PATH=""
 
 # 通知
 WECHAT_WEBHOOK_URL="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=21d2abfd-ecd1-4680-9348-064039611c30"
 NOTIFY_ENABLED="true"
+JENKINS_BUILD_URL_BASE=""
