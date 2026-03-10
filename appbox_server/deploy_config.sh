@@ -51,7 +51,12 @@ REMOTE_CONTAINER_STABILITY_SECONDS="5"
 PROD_CONTAINER_NAME="appbox_server"
 PROD_HOST_PORT="8090"
 PROD_CONTAINER_IP=""
-# 启用 TinyText provider 时，远端 env-file 至少需要：
+# 启用 provider 时，远端 env-file 需要补齐服务间鉴权配置：
+# Stellar:
+# STELLAR_ENABLED=true
+# STELLAR_API_BASE_URL=http://stellar:8000/api/v1
+# STELLAR_GATEWAY_KEY=<shared_gateway_key>
+# TinyText:
 # TINYTEXT_ENABLED=true
 # TINYTEXT_API_BASE_URL=<tinytext_api_base_url>
 # TINYTEXT_GATEWAY_KEY=<shared_gateway_key>

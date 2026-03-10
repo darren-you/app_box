@@ -106,6 +106,18 @@ func (p *stellarProvider) DeleteConfig(ctx context.Context, key string) error {
 }
 
 func (p *stellarProvider) doJSON(ctx context.Context, method, path string, reqBody interface{}, out interface{}) error {
+	return p.doJSONWithHeaders(ctx, method, path, reqBody, out, map[string]string{
+		p.cfg.GatewayHead: p.cfg.GatewayKey,
+	})
+}
+
+func (p *stellarProvider) doJSONWithHeaders(
+	ctx context.Context,
+	method, path string,
+	reqBody interface{},
+	out interface{},
+	extraHeaders map[string]string,
+) error {
 	fullURL := p.cfg.BaseURL + "/" + strings.TrimPrefix(path, "/")
 
 	var bodyReader io.Reader
@@ -125,7 +137,12 @@ func (p *stellarProvider) doJSON(ctx context.Context, method, path string, reqBo
 	if reqBody != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set(p.cfg.GatewayHead, p.cfg.GatewayKey)
+	for key, value := range extraHeaders {
+		if strings.TrimSpace(key) == "" || strings.TrimSpace(value) == "" {
+			continue
+		}
+		req.Header.Set(key, value)
+	}
 
 	resp, err := p.client.Do(req)
 	if err != nil {

@@ -78,6 +78,20 @@ bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/de
 http://localhost:8090/api/v1
 ```
 
+## Stellar provider 配置
+
+若要打通星烁管理能力，`appbox_server` 所在环境的 `env-file` 需至少包含：
+
+```dotenv
+STELLAR_ENABLED=true
+STELLAR_PROVIDER_NAME=stellar
+STELLAR_API_BASE_URL=http://stellar:8000/api/v1
+STELLAR_GATEWAY_HEADER=X-Gateway-Key
+STELLAR_GATEWAY_KEY=replace-with-a-shared-gateway-key
+```
+
+`STELLAR_GATEWAY_KEY` 必须与星烁服务里的 `GATEWAY_ADMIN_KEY` 一致，`/api/v1/admin/*` 只允许通过该服务间鉴权方式访问。
+
 ## TinyText provider 配置
 
 若要真正打通 TinyText 的“用户管理”，`appbox_server` 所在环境的 `env-file` 需至少包含：
@@ -98,4 +112,4 @@ TINYTEXT_GATEWAY_KEY=replace-with-a-shared-gateway-key
 
 ## 与上游 app 的鉴权约定
 
-`appbox_server` 调用上游 app 的管理接口时，使用网关密钥请求头（默认 `X-Gateway-Key`），不再依赖各 app 自己的管理员登录接口。
+`appbox_server` 调用上游 app 的管理接口时，统一使用网关密钥请求头（默认 `X-Gateway-Key`）。业务服务不得依赖旧的管理员登录模式作为 AppBox 管理接口入口。

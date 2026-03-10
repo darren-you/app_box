@@ -8,7 +8,8 @@
 
 - 前端仍只调用网关：`/api/v1/admin/*`
 - 网关根据 `X-App-Key` 或默认 provider 转发到目标 `app_server`
-- `app_server` 只暴露管理能力接口，不负责管理端登录
+- `app_server` 只暴露管理能力接口，不负责 AppBox 管理端登录
+- `app_server` 的 `/api/v1/admin/*` 只接受服务间鉴权，不做旧管理员登录兼容
 
 ## 1.1 运行期交互图
 
@@ -56,6 +57,27 @@ sequenceDiagram
 - key 错误：`401`
 - 未配置服务端 key：`503`
 
+强约束：
+
+- 不允许把 `/api/v1/admin/*` 挂在普通用户 JWT 中间件下
+- 不允许保留“没有 `X-Gateway-Key` 时再回退管理员登录”的兼容逻辑
+- 如果历史服务仍保留旧的后台登录接口，也不能作为 AppBox 接入链路的一部分
+
+## 2.5 app_server 侧环境变量要求
+
+`app_server` 至少需要补齐以下配置：
+
+```dotenv
+GATEWAY_AUTH_HEADER=X-Gateway-Key
+GATEWAY_ADMIN_KEY=replace-with-a-shared-gateway-key
+```
+
+要求：
+
+- `GATEWAY_ADMIN_KEY` 与网关侧 `STELLAR_GATEWAY_KEY` / `FOO_GATEWAY_KEY` 严格一致
+- `GATEWAY_AUTH_HEADER` 若未特殊说明，统一为 `X-Gateway-Key`
+- 发布前必须确保目标环境已实际注入该配置，而不是只改代码未改 env-file
+
 ## 2.4 统一响应结构
 
 网关按如下结构解析上游：
@@ -102,6 +124,11 @@ flowchart TD
 - `Timeout`
 
 并在 `.env.example` 新增对应环境变量。
+
+禁止做法：
+
+- 不要在 provider 中追加旧管理员登录、session、cookie 等兼容回源逻辑
+- 不要让网关去调用业务服务的 `/auth/admin/login`
 
 ### 步骤 2：实现 Provider
 
@@ -177,6 +204,11 @@ flowchart TD
 3. 网关调用 `GET /api/v1/admin/providers` 能看到目标 provider。
 4. 使用 `X-App-Key` 调用 `GET /api/v1/admin/users` 返回正确数据。
 5. 错误 key 时，网关可收到并返回 401 错误语义。
+6. 直接请求 `app_server` 的 `GET /api/v1/admin/users`：
+   - 不带 `X-Gateway-Key` 时返回 `401 gateway key is required`
+   - 带错误 key 时返回 `401 invalid gateway key`
+   - 带正确 key 时返回业务数据
+7. 确认 `app_server` 没有把 AppBox 管理链路绑定到旧的管理员登录接口。
 
 ## 7. 常见问题
 
@@ -184,6 +216,7 @@ flowchart TD
 - `502`：`app_server` 不可达、响应非 JSON 或响应结构不符合契约。
 - `401 invalid gateway key`：网关与 `app_server` 的 key 不一致。
 - `503 gateway auth key is not configured`：`app_server` 未配置鉴权 key。
+- `401 Token not provided`：`app_server` 的 `/api/v1/admin/*` 仍挂在旧的用户/管理员 JWT 鉴权上，尚未按接入规范切到网关鉴权。
 
 ## 7.1 网关与 app_server 鉴权失败时序图
 

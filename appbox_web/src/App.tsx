@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAdminMe, login } from './api/admin';
+import { getAdminMe, listProviders, login } from './api/admin';
 import { clearToken, getToken, setToken } from './api/client';
 import type { AdminProfile } from './types/api';
 import LoginPage from './pages/LoginPage';
@@ -7,7 +7,7 @@ import UsersPage from './pages/UsersPage';
 import ConfigsPage from './pages/ConfigsPage';
 import styles from './App.module.css';
 
-type AppKey = 'stellar' | 'tinytext';
+type AppKey = string;
 type WorkspaceTabKey = 'users' | 'configs';
 
 interface AppDefinition {
@@ -21,22 +21,28 @@ interface AppDefinition {
 const STELLAR_LOGO = '/assets/icons/stellar_240x240.png';
 const TINYTEXT_LOGO = '/assets/icons/tinytext_1024x1024.png';
 
-const appDefinitions: AppDefinition[] = [
-  {
+const appDefinitionMap: Record<string, AppDefinition> = {
+  tinytext: {
     key: 'tinytext',
     label: 'TinyText',
     logo: TINYTEXT_LOGO,
     userVariant: 'tinytext',
     tabs: ['users']
   },
-  {
+  stellar: {
     key: 'stellar',
     label: '星烁',
     logo: STELLAR_LOGO,
     userVariant: 'stellar',
     tabs: ['users', 'configs']
   }
-];
+};
+
+function resolveAvailableApps(providerKeys: string[]): AppDefinition[] {
+  return providerKeys
+    .map((providerKey) => appDefinitionMap[providerKey])
+    .filter((item): item is AppDefinition => Boolean(item));
+}
 
 function SideIcon({ type }: { type: 'logout' }): JSX.Element {
   return (
@@ -53,13 +59,17 @@ export default function App(): JSX.Element {
   const [activeMenu, setActiveMenu] = useState<AppKey>('tinytext');
   const [activeTab, setActiveTab] = useState<WorkspaceTabKey>('users');
   const [currentAdmin, setCurrentAdmin] = useState<AdminProfile | null>(null);
+  const [availableApps, setAvailableApps] = useState<AppDefinition[]>([]);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
 
   const authenticated = Boolean(token);
-  const activeApp = appDefinitions.find((item) => item.key === activeMenu) || appDefinitions[0];
+  const activeApp = availableApps.find((item) => item.key === activeMenu) || availableApps[0] || null;
 
   useEffect(() => {
+    if (!activeApp) {
+      return;
+    }
     if (!activeApp.tabs.includes(activeTab)) {
       setActiveTab(activeApp.tabs[0]);
     }
@@ -74,8 +84,21 @@ export default function App(): JSX.Element {
       setLoadingProfile(true);
       setProfileError('');
       try {
-        const profile = await getAdminMe();
+        const [profile, providerKeys] = await Promise.all([getAdminMe(), listProviders()]);
+        const nextApps = resolveAvailableApps(providerKeys);
+
+        if (nextApps.length === 0) {
+          throw new Error('当前环境未启用受支持的应用 provider');
+        }
+
         setCurrentAdmin(profile);
+        setAvailableApps(nextApps);
+        setActiveMenu((current) => {
+          if (nextApps.some((item) => item.key === current)) {
+            return current;
+          }
+          return nextApps[0].key;
+        });
       } catch (e) {
         const message = e instanceof Error ? e.message : '获取管理员信息失败';
         setProfileError(message);
@@ -85,6 +108,12 @@ export default function App(): JSX.Element {
     };
 
     void fetchProfile();
+  }, [authenticated]);
+
+  useEffect(() => {
+    if (!authenticated) {
+      setAvailableApps([]);
+    }
   }, [authenticated]);
 
   const handleLogin = async (password: string): Promise<void> => {
@@ -101,6 +130,7 @@ export default function App(): JSX.Element {
     clearToken();
     setTokenState('');
     setCurrentAdmin(null);
+    setAvailableApps([]);
     setProfileError('');
     setActiveMenu('tinytext');
     setActiveTab('users');
@@ -138,12 +168,22 @@ export default function App(): JSX.Element {
     );
   }
 
+  if (!activeApp) {
+    return (
+      <main className={styles.errorPage}>
+        <h2>无可用应用</h2>
+        <p>当前环境没有已启用且受前端支持的 provider。</p>
+        <button onClick={handleLogout}>返回登录</button>
+      </main>
+    );
+  }
+
   return (
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <nav className={styles.menuList}>
-            {appDefinitions.map((item) => (
+            {availableApps.map((item) => (
               <button
                 key={item.key}
                 className={activeMenu === item.key ? styles.activeMenu : ''}

@@ -24,6 +24,10 @@ export async function getAdminMe(): Promise<AdminProfile> {
   return request<AdminProfile>('/admin/auth/me', { method: 'GET' });
 }
 
+export async function listProviders(): Promise<string[]> {
+  return request<string[]>('/admin/providers', { method: 'GET' });
+}
+
 export async function listUsers(
   page: number,
   pageSize: number,
