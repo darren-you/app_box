@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import LightRays from '../components/LightRays';
-import loginTopImage from '../assets/login-top-image.png';
 import styles from './LoginPage.module.css';
+
+const LOGIN_TOP_IMAGE = '/assets/icons/appbox_1024x1024.png';
 
 interface LoginPageProps {
   onSubmit: (password: string) => Promise<void>;
@@ -45,7 +46,7 @@ export default function LoginPage({ onSubmit }: LoginPageProps): JSX.Element {
       />
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.passwordBlock}>
-          <img src={loginTopImage} alt="AppBox" className={styles.loginImage} />
+          <img src={LOGIN_TOP_IMAGE} alt="AppBox" className={styles.loginImage} />
           <input
             id="password"
             type="password"
