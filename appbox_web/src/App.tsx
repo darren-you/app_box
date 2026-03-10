@@ -9,7 +9,7 @@ import styles from './App.module.css';
 
 type LeftMenuKey = 'stellar';
 type StellarTabKey = 'users' | 'configs';
-const STELLAR_LOGO = 'https://xdarren.com/res/images/stellar/stellar-logo-black.png';
+const STELLAR_LOGO = '/assets/icons/stellar_logo_black.png';
 
 const menuItems: Array<{ key: LeftMenuKey; label: string }> = [
   { key: 'stellar', label: '星烁' }

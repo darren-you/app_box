@@ -18,6 +18,13 @@
 - `README.md` 作为特殊文档保留默认命名，不纳入普通文档命名规则。
 - 文档命名示例：`project_analysis_report.md`、`font_subset_extraction_guide.md`。
 
+## Web Static Assets
+
+- Web 站点级静态资源统一放在 `<web_dir>/public/assets`。
+- favicon、logo、icon 等图标资源统一放在 `<web_dir>/public/assets/icons`，`index.html`、`site.webmanifest` 和页面代码统一使用该目录下的绝对路径引用。
+- 需要通过绝对路径直接访问的普通图片素材统一放在 `<web_dir>/public/assets/images`。
+- 仅在资源需要被前端代码 `import` 并参与打包时，才放在 `<web_dir>/src/assets`；不要把 favicon 或共享 icon 放在 `src/assets`。
+
 ## Deployment And Verification
 
 - 当用户明确要求“部署、上线、修复线上配置并验证”时，Agent 可以直接在本地调用 `deploy_shell` 中的脚本，不必先等待 Jenkins。
