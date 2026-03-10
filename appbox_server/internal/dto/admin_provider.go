@@ -26,6 +26,9 @@ type User struct {
 	Status                string  `json:"status"`
 	IsSubscriber          bool    `json:"isSubscriber"`
 	SubscriptionExpiresAt *string `json:"subscriptionExpiresAt"`
+	LastLoginAt           *string `json:"lastLoginAt"`
+	WechatOpenIDMasked    string  `json:"wechatOpenIdMasked"`
+	WechatUnionIDMasked   string  `json:"wechatUnionIdMasked"`
 	CreatedAt             string  `json:"createdAt"`
 }
 
