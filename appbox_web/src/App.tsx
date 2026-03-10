@@ -7,12 +7,35 @@ import UsersPage from './pages/UsersPage';
 import ConfigsPage from './pages/ConfigsPage';
 import styles from './App.module.css';
 
-type LeftMenuKey = 'stellar';
-type StellarTabKey = 'users' | 'configs';
-const STELLAR_LOGO = '/assets/icons/stellar_logo_black.png';
+type AppKey = 'stellar' | 'tinytext';
+type WorkspaceTabKey = 'users' | 'configs';
 
-const menuItems: Array<{ key: LeftMenuKey; label: string }> = [
-  { key: 'stellar', label: '星烁' }
+interface AppDefinition {
+  key: AppKey;
+  label: string;
+  logo: string;
+  userVariant: 'stellar' | 'tinytext';
+  tabs: WorkspaceTabKey[];
+}
+
+const STELLAR_LOGO = '/assets/icons/stellar_240x240.png';
+const TINYTEXT_LOGO = '/assets/icons/tinytext_1024x1024.png';
+
+const appDefinitions: AppDefinition[] = [
+  {
+    key: 'tinytext',
+    label: 'TinyText',
+    logo: TINYTEXT_LOGO,
+    userVariant: 'tinytext',
+    tabs: ['users']
+  },
+  {
+    key: 'stellar',
+    label: '星烁',
+    logo: STELLAR_LOGO,
+    userVariant: 'stellar',
+    tabs: ['users', 'configs']
+  }
 ];
 
 function SideIcon({ type }: { type: 'logout' }): JSX.Element {
@@ -27,13 +50,20 @@ function SideIcon({ type }: { type: 'logout' }): JSX.Element {
 
 export default function App(): JSX.Element {
   const [token, setTokenState] = useState(getToken());
-  const [activeMenu, setActiveMenu] = useState<LeftMenuKey>('stellar');
-  const [stellarTab, setStellarTab] = useState<StellarTabKey>('users');
+  const [activeMenu, setActiveMenu] = useState<AppKey>('tinytext');
+  const [activeTab, setActiveTab] = useState<WorkspaceTabKey>('users');
   const [currentAdmin, setCurrentAdmin] = useState<AdminProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
 
   const authenticated = Boolean(token);
+  const activeApp = appDefinitions.find((item) => item.key === activeMenu) || appDefinitions[0];
+
+  useEffect(() => {
+    if (!activeApp.tabs.includes(activeTab)) {
+      setActiveTab(activeApp.tabs[0]);
+    }
+  }, [activeApp, activeTab]);
 
   useEffect(() => {
     if (!authenticated) {
@@ -72,8 +102,8 @@ export default function App(): JSX.Element {
     setTokenState('');
     setCurrentAdmin(null);
     setProfileError('');
-    setActiveMenu('stellar');
-    setStellarTab('users');
+    setActiveMenu('tinytext');
+    setActiveTab('users');
   };
 
   if (!authenticated) {
@@ -113,27 +143,21 @@ export default function App(): JSX.Element {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <nav className={styles.menuList}>
-            {menuItems.map((item) => (
+            {appDefinitions.map((item) => (
               <button
                 key={item.key}
                 className={activeMenu === item.key ? styles.activeMenu : ''}
-                onClick={() => setActiveMenu(item.key)}
+                onClick={() => {
+                  setActiveMenu(item.key);
+                  setActiveTab(item.tabs[0]);
+                }}
               >
-                {item.key === 'stellar' ? (
-                  <span className={styles.menuLabelWithIcon}>
-                    <span className={styles.menuGlyph}>
-                      <img className={styles.appLogo} src={STELLAR_LOGO} alt="星烁 Logo" />
-                    </span>
-                    <span className={styles.menuLabel}>{item.label}</span>
+                <span className={styles.menuLabelWithIcon}>
+                  <span className={styles.menuGlyph}>
+                    <img className={styles.appLogo} src={item.logo} alt={`${item.label} Logo`} />
                   </span>
-                ) : (
-                  <span className={styles.menuLabelWithIcon}>
-                    <span className={styles.menuGlyph}>
-                      <SideIcon type={item.key} />
-                    </span>
-                    <span className={styles.menuLabel}>{item.label}</span>
-                  </span>
-                )}
+                  <span className={styles.menuLabel}>{item.label}</span>
+                </span>
               </button>
             ))}
           </nav>
@@ -152,34 +176,29 @@ export default function App(): JSX.Element {
       </aside>
 
       <main className={styles.content}>
-        {activeMenu === 'stellar' ? (
-          <section className={styles.workspace}>
+        <section className={styles.workspace}>
+          {activeApp.tabs.length > 1 ? (
             <header className={styles.workspaceHeader}>
               <div className={styles.topTabs}>
-                <button
-                  className={stellarTab === 'users' ? styles.activeTopTab : ''}
-                  onClick={() => setStellarTab('users')}
-                >
-                  用户管理
-                </button>
-                <button
-                  className={stellarTab === 'configs' ? styles.activeTopTab : ''}
-                  onClick={() => setStellarTab('configs')}
-                >
-                  配置管理
-                </button>
+                {activeApp.tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    className={activeTab === tab ? styles.activeTopTab : ''}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab === 'users' ? '用户管理' : '配置管理'}
+                  </button>
+                ))}
               </div>
             </header>
-            {stellarTab === 'users' ? <UsersPage /> : <ConfigsPage />}
-          </section>
-        ) : (
-          <section className={styles.workspace}>
-            <div className={styles.placeholderPanel}>
-              <p>该功能正在建设中。</p>
-              <p>后续可在该区域集成常用运维工具与流程。</p>
-            </div>
-          </section>
-        )}
+          ) : null}
+
+          {activeTab === 'users' ? (
+            <UsersPage key={`${activeApp.key}-users`} appKey={activeApp.key} variant={activeApp.userVariant} />
+          ) : (
+            <ConfigsPage key={`${activeApp.key}-configs`} appKey={activeApp.key} />
+          )}
+        </section>
       </main>
     </div>
   );

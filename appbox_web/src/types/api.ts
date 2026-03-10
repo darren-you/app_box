@@ -62,6 +62,9 @@ export interface User {
   isSubscriber: boolean;
   subscriptionExpiresAt: string | null;
   createdAt: string;
+  lastLoginAt?: string | null;
+  wechatOpenIdMasked?: string;
+  wechatUnionIdMasked?: string;
 }
 
 export interface AdminUserUpdateRequest {

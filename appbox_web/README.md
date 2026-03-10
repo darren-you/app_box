@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-前端 API 默认请求线上域名：`https://stellar.xdarren.com/api/v1`。  
+前端 API 默认走同域 `/api/v1`。  
 如需临时改为其他后端，可设置：
 
 ```bash
@@ -43,14 +43,14 @@ bash ../deploy_shell/deploy_web/remote_deploy_pipeline.sh --config "$(pwd)/deplo
 ## 菜单结构
 
 左侧菜单：
-- nginx配置
-- web部署
-- 静态资源
 - 星烁
+- TinyText
 - 退出登录（固定在最底部）
 
 右侧操作区：
-- 选择工具菜单时，显示对应工具操作面板（当前为占位面板）。
 - 选择 `星烁` 时，顶部功能标签为：
   - 用户管理
   - 配置管理
+- 选择 `TinyText` 时：
+  - 仅显示用户管理
+  - 展示微信注册/登录用户的基础信息、脱敏 OpenID/UnionID 与最后登录时间

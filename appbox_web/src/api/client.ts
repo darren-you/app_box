@@ -2,7 +2,7 @@ import type { ApiResponse } from '../types/api';
 
 const TOKEN_KEY = 'stellar_bms_token';
 const API_BASE = normalizeApiBase(
-  import.meta.env.VITE_API_BASE_URL || 'https://stellar.xdarren.com/api/v1'
+  import.meta.env.VITE_API_BASE_URL || '/api/v1'
 );
 
 export function setToken(token: string): void {
@@ -19,11 +19,12 @@ export function clearToken(): void {
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
   auth?: boolean;
+  appKey?: string;
   body?: unknown;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { auth = true, body, headers, ...rest } = options;
+  const { auth = true, appKey = '', body, headers, ...rest } = options;
   const finalHeaders = new Headers(headers);
 
   if (body !== undefined && body !== null) {
@@ -35,6 +36,10 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     if (token) {
       finalHeaders.set('Authorization', `Bearer ${token}`);
     }
+  }
+
+  if (appKey.trim()) {
+    finalHeaders.set('X-App-Key', appKey.trim());
   }
 
   const url = buildApiUrl(path);

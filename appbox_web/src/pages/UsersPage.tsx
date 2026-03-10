@@ -3,6 +3,13 @@ import { deleteUser, listUserPlanets, listUsers, updateUser } from '../api/admin
 import type { AdminUserUpdateRequest, PlanetItem, User } from '../types/api';
 import styles from './UsersPage.module.css';
 
+type UserPageVariant = 'stellar' | 'tinytext';
+
+interface UsersPageProps {
+  appKey: string;
+  variant: UserPageVariant;
+}
+
 interface EditorState {
   userId: number;
   username: string;
@@ -15,7 +22,7 @@ interface EditorState {
 const PAGE_SIZE = 20;
 const PLANET_PAGE_SIZE = 10;
 
-function formatDate(dateString: string | null): string {
+function formatDate(dateString: string | null | undefined): string {
   if (!dateString) {
     return '-';
   }
@@ -58,7 +65,7 @@ function toRFC3339(dateTimeLocal: string): string {
   return date.toISOString();
 }
 
-export default function UsersPage(): JSX.Element {
+export default function UsersPage({ appKey, variant }: UsersPageProps): JSX.Element {
   const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -78,16 +85,22 @@ export default function UsersPage(): JSX.Element {
   const [planetLoading, setPlanetLoading] = useState(false);
   const [planetError, setPlanetError] = useState('');
 
+  const isTinyText = variant === 'tinytext';
+  const supportsPlanets = !isTinyText;
+  const supportsEditing = !isTinyText;
+  const supportsDelete = !isTinyText;
   const hasPrev = page > 1;
   const hasNext = page < totalPages;
   const hasPlanetPrev = planetPage > 1;
   const hasPlanetNext = planetPage < planetTotalPages;
+  const columnCount = isTinyText ? 6 : 8;
+  const searchPlaceholder = isTinyText ? '检索昵称 / ID / 微信 OpenID' : '检索昵称 / ID / 手机号';
 
   const loadUsers = async (): Promise<void> => {
     setLoading(true);
     setError('');
     try {
-      const response = await listUsers(page, PAGE_SIZE, keyword);
+      const response = await listUsers(page, PAGE_SIZE, keyword, appKey);
       setUsers(response.data);
       setTotalPages(response.totalPages || 1);
       setTotal(response.total);
@@ -102,7 +115,7 @@ export default function UsersPage(): JSX.Element {
 
   useEffect(() => {
     void loadUsers();
-  }, [page, keyword]);
+  }, [appKey, page, keyword]);
 
   const runSearch = (nextKeyword: string): void => {
     const trimmed = nextKeyword.trim();
@@ -132,7 +145,7 @@ export default function UsersPage(): JSX.Element {
     setPlanetLoading(true);
     setPlanetError('');
     try {
-      const response = await listUserPlanets(userId, targetPage, PLANET_PAGE_SIZE);
+      const response = await listUserPlanets(userId, targetPage, PLANET_PAGE_SIZE, appKey);
       setPlanetItems(response.data || []);
       setPlanetPage(response.page || targetPage);
       setPlanetTotalPages(response.totalPages || 1);
@@ -146,6 +159,9 @@ export default function UsersPage(): JSX.Element {
   };
 
   const openPlanetViewer = async (user: User): Promise<void> => {
+    if (!supportsPlanets) {
+      return;
+    }
     setPlanetViewerUser(user);
     setPlanetItems([]);
     setPlanetPage(1);
@@ -161,6 +177,9 @@ export default function UsersPage(): JSX.Element {
   };
 
   const startEdit = (user: User): void => {
+    if (!supportsEditing) {
+      return;
+    }
     setEditor({
       userId: user.id,
       username: user.username,
@@ -172,7 +191,7 @@ export default function UsersPage(): JSX.Element {
   };
 
   const handleSave = async (): Promise<void> => {
-    if (!editor) {
+    if (!editor || !supportsEditing) {
       return;
     }
 
@@ -187,7 +206,7 @@ export default function UsersPage(): JSX.Element {
     setSaving(true);
     setError('');
     try {
-      await updateUser(editor.userId, payload);
+      await updateUser(editor.userId, payload, appKey);
       setEditor(null);
       await loadUsers();
     } catch (e) {
@@ -199,6 +218,9 @@ export default function UsersPage(): JSX.Element {
   };
 
   const handleDelete = async (user: User): Promise<void> => {
+    if (!supportsDelete) {
+      return;
+    }
     const confirmed = window.confirm(`确认删除用户 ${user.username} (ID: ${user.id}) 吗？`);
     if (!confirmed) {
       return;
@@ -206,7 +228,7 @@ export default function UsersPage(): JSX.Element {
 
     setError('');
     try {
-      await deleteUser(user.id);
+      await deleteUser(user.id, appKey);
       if (users.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
@@ -238,13 +260,13 @@ export default function UsersPage(): JSX.Element {
         <div className={styles.summaryRow}>
           <p className={styles.totalInfo}>
             <span>用户总数：{total}</span>
-            <span>订阅用户：{subscriberTotal}</span>
+            {!isTinyText && <span>订阅用户：{subscriberTotal}</span>}
           </p>
           <form className={styles.searchForm} onSubmit={handleSearchSubmit}>
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="检索昵称 / ID / 手机号"
+              placeholder={searchPlaceholder}
             />
             <button type="submit">搜索</button>
             <button type="button" onClick={handleResetSearch}>
@@ -262,59 +284,82 @@ export default function UsersPage(): JSX.Element {
             <tr>
               <th>ID</th>
               <th>用户名</th>
-              <th>手机号</th>
-              <th>状态</th>
-              <th>订阅</th>
-              <th>订阅到期</th>
-              <th>创建时间</th>
-              <th>操作</th>
+              {isTinyText ? (
+                <>
+                  <th>微信 OpenID</th>
+                  <th>微信 UnionID</th>
+                  <th>最后登录</th>
+                  <th>创建时间</th>
+                </>
+              ) : (
+                <>
+                  <th>手机号</th>
+                  <th>状态</th>
+                  <th>订阅</th>
+                  <th>订阅到期</th>
+                  <th>创建时间</th>
+                  <th>操作</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className={styles.empty}>
+                <td colSpan={columnCount} className={styles.empty}>
                   加载中...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={8} className={styles.empty}>
+                <td colSpan={columnCount} className={styles.empty}>
                   暂无数据
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.id}</td>
-                  <td>
-                    <div className={styles.userCell}>
-                      {user.avatar ? (
-                        <img className={styles.avatar} src={user.avatar} alt={`${user.username} avatar`} />
-                      ) : (
-                        <span className={styles.avatarFallback}>
-                          {user.username.trim().charAt(0).toUpperCase() || '?'}
-                        </span>
-                      )}
-                      <span>{user.username}</span>
-                    </div>
-                  </td>
-                  <td>{user.phone || '-'}</td>
-                  <td>{user.status}</td>
-                  <td>{user.isSubscriber ? '是' : '否'}</td>
-                  <td>{formatDate(user.subscriptionExpiresAt)}</td>
-                  <td>{formatDate(user.createdAt)}</td>
-                  <td>
-                    <div className={styles.actions}>
-                      <button onClick={() => void openPlanetViewer(user)}>星球</button>
-                      <button onClick={() => startEdit(user)}>编辑</button>
-                      <button className={styles.deleteButton} onClick={() => void handleDelete(user)}>
-                        删除
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              users.map((user) => {
+                const displayName = user.username.trim() || `用户 #${user.id}`;
+                return (
+                  <tr key={user.id}>
+                    <td>{user.id}</td>
+                    <td>
+                      <div className={styles.userCell}>
+                        {user.avatar ? (
+                          <img className={styles.avatar} src={user.avatar} alt={`${displayName} avatar`} />
+                        ) : (
+                          <span className={styles.avatarFallback}>{displayName.charAt(0).toUpperCase() || '?'}</span>
+                        )}
+                        <span>{displayName}</span>
+                      </div>
+                    </td>
+                    {isTinyText ? (
+                      <>
+                        <td>{user.wechatOpenIdMasked || '-'}</td>
+                        <td>{user.wechatUnionIdMasked || '-'}</td>
+                        <td>{formatDate(user.lastLoginAt)}</td>
+                        <td>{formatDate(user.createdAt)}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{user.phone || '-'}</td>
+                        <td>{user.status}</td>
+                        <td>{user.isSubscriber ? '是' : '否'}</td>
+                        <td>{formatDate(user.subscriptionExpiresAt)}</td>
+                        <td>{formatDate(user.createdAt)}</td>
+                        <td>
+                          <div className={styles.actions}>
+                            <button onClick={() => void openPlanetViewer(user)}>星球</button>
+                            <button onClick={() => startEdit(user)}>编辑</button>
+                            <button className={styles.deleteButton} onClick={() => void handleDelete(user)}>
+                              删除
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -332,7 +377,7 @@ export default function UsersPage(): JSX.Element {
         </div>
       </footer>
 
-      {planetViewerUser && (
+      {supportsPlanets && planetViewerUser && (
         <div className={styles.modalBackdrop}>
           <div className={styles.planetModal}>
             <h3>{planetViewerUser.username} 的星球数据</h3>
@@ -373,12 +418,7 @@ export default function UsersPage(): JSX.Element {
                         <td>{formatDate(planet.createdAt)}</td>
                         <td>
                           {planet.imageUrl ? (
-                            <a
-                              className={styles.imageLink}
-                              href={planet.imageUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
+                            <a className={styles.imageLink} href={planet.imageUrl} target="_blank" rel="noreferrer">
                               查看
                             </a>
                           ) : (
@@ -416,7 +456,7 @@ export default function UsersPage(): JSX.Element {
         </div>
       )}
 
-      {editor && (
+      {supportsEditing && editor && (
         <div className={styles.modalBackdrop}>
           <div className={styles.modal}>
             <h3>编辑用户 #{editor.userId}</h3>

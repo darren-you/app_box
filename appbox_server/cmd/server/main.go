@@ -58,6 +58,12 @@ func main() {
 		logger.Infof("provider registered: %s -> %s", stellarProvider.Name(), cfg.Provider.Stellar.BaseURL)
 	}
 
+	if cfg.Provider.TinyText.Enabled {
+		tinytextProvider := service.NewTinyTextProvider(cfg.Provider.TinyText)
+		registry.Register(tinytextProvider.Name(), tinytextProvider)
+		logger.Infof("provider registered: %s -> %s", tinytextProvider.Name(), cfg.Provider.TinyText.BaseURL)
+	}
+
 	router.SetupRoutes(app, adminAuthService, registry, jwtConfig)
 
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)

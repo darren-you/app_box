@@ -40,11 +40,21 @@ type AdminConfig struct {
 }
 
 type ProviderConfig struct {
-	Default string
-	Stellar StellarProviderConfig
+	Default  string
+	Stellar  StellarProviderConfig
+	TinyText TinyTextProviderConfig
 }
 
 type StellarProviderConfig struct {
+	Enabled     bool
+	Name        string
+	BaseURL     string
+	GatewayKey  string
+	GatewayHead string
+	Timeout     time.Duration
+}
+
+type TinyTextProviderConfig struct {
 	Enabled     bool
 	Name        string
 	BaseURL     string
@@ -84,6 +94,14 @@ func Load() (*Config, error) {
 				GatewayHead: strings.TrimSpace(getEnv("STELLAR_GATEWAY_HEADER", "X-Gateway-Key")),
 				Timeout:     getEnvDuration("STELLAR_TIMEOUT", 10*time.Second),
 			},
+			TinyText: TinyTextProviderConfig{
+				Enabled:     getEnvBool("TINYTEXT_ENABLED", false),
+				Name:        strings.TrimSpace(getEnv("TINYTEXT_PROVIDER_NAME", "tinytext")),
+				BaseURL:     normalizeBaseURL(getEnv("TINYTEXT_API_BASE_URL", "http://127.0.0.1:8080/api/v1")),
+				GatewayKey:  strings.TrimSpace(getEnv("TINYTEXT_GATEWAY_KEY", "")),
+				GatewayHead: strings.TrimSpace(getEnv("TINYTEXT_GATEWAY_HEADER", "X-Gateway-Key")),
+				Timeout:     getEnvDuration("TINYTEXT_TIMEOUT", 10*time.Second),
+			},
 		},
 	}
 
@@ -102,8 +120,26 @@ func Load() (*Config, error) {
 		}
 	}
 
+	if cfg.Provider.TinyText.Enabled {
+		if cfg.Provider.TinyText.Name == "" {
+			return nil, fmt.Errorf("TINYTEXT_PROVIDER_NAME is required when tinytext provider is enabled")
+		}
+		if cfg.Provider.TinyText.BaseURL == "" {
+			return nil, fmt.Errorf("TINYTEXT_API_BASE_URL is required when tinytext provider is enabled")
+		}
+		if cfg.Provider.TinyText.GatewayKey == "" {
+			return nil, fmt.Errorf("TINYTEXT_GATEWAY_KEY is required when tinytext provider is enabled")
+		}
+		if cfg.Provider.TinyText.GatewayHead == "" {
+			cfg.Provider.TinyText.GatewayHead = "X-Gateway-Key"
+		}
+	}
+
 	if cfg.Provider.Default == "" && cfg.Provider.Stellar.Enabled {
 		cfg.Provider.Default = cfg.Provider.Stellar.Name
+	}
+	if cfg.Provider.Default == "" && cfg.Provider.TinyText.Enabled {
+		cfg.Provider.Default = cfg.Provider.TinyText.Name
 	}
 	return cfg, nil
 }

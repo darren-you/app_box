@@ -1,6 +1,6 @@
 # appbox_server
 
-`appbox` 后台管理网关服务，已把原来写在 `stellar-go` 的后台登录能力和星烁管理接口接入能力抽离到这里。
+`appbox` 后台管理网关服务，已把原来写在 `stellar-go` 的后台登录能力和多应用管理接口接入能力抽离到这里。
 
 ## 已实现能力
 
@@ -14,6 +14,8 @@
   - `GET /api/v1/admin/configs`
   - `PUT /api/v1/admin/configs/:key`
   - `DELETE /api/v1/admin/configs/:key`
+- TinyText 用户管理透传（启用 `TINYTEXT_ENABLED=true` 后生效）：
+  - `GET /api/v1/admin/users`
 - provider 列表：`GET /api/v1/admin/providers`
 - 健康检查：`GET /api/v1/health`
 
@@ -76,10 +78,24 @@ bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/de
 http://localhost:8090/api/v1
 ```
 
+## TinyText provider 配置
+
+若要真正打通 TinyText 的“用户管理”，`appbox_server` 所在环境的 `env-file` 需至少包含：
+
+```dotenv
+TINYTEXT_ENABLED=true
+TINYTEXT_PROVIDER_NAME=tinytext
+TINYTEXT_API_BASE_URL=http://127.0.0.1:8080/api/v1
+TINYTEXT_GATEWAY_HEADER=X-Gateway-Key
+TINYTEXT_GATEWAY_KEY=replace-with-a-shared-gateway-key
+```
+
+其中 `TINYTEXT_GATEWAY_KEY` 必须与 TinyText 服务里的 `GATEWAY_AUTH_KEY` 一致。
+
 ## 多 app 扩展
 
 当前已抽象 provider 注册中心（`internal/service/provider.go`），后续新增 app 时可新增一个 provider 并注册到路由层，无需改前端主流程。
 
-## 与 stellar-go 的鉴权约定
+## 与上游 app 的鉴权约定
 
-`appbox_server` 调用 `stellar-go` 的管理接口时，使用网关密钥请求头（默认 `X-Gateway-Key`），不再依赖 `stellar-go` 的管理员登录接口。
+`appbox_server` 调用上游 app 的管理接口时，使用网关密钥请求头（默认 `X-Gateway-Key`），不再依赖各 app 自己的管理员登录接口。

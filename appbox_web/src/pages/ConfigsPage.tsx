@@ -3,6 +3,10 @@ import { deleteConfig, listConfigs, upsertConfig } from '../api/admin';
 import type { AppConfig, AppConfigUpsertRequest } from '../types/api';
 import styles from './ConfigsPage.module.css';
 
+interface ConfigsPageProps {
+  appKey: string;
+}
+
 interface ConfigFormState {
   key: string;
   alias: string;
@@ -35,7 +39,7 @@ const defaultForm: ConfigFormState = {
   description: ''
 };
 
-export default function ConfigsPage(): JSX.Element {
+export default function ConfigsPage({ appKey }: ConfigsPageProps): JSX.Element {
   const [configs, setConfigs] = useState<AppConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -59,7 +63,7 @@ export default function ConfigsPage(): JSX.Element {
     setLoading(true);
     setError('');
     try {
-      const response = await listConfigs();
+      const response = await listConfigs(appKey);
       setConfigs(response);
     } catch (e) {
       const message = e instanceof Error ? e.message : '加载配置失败';
@@ -71,7 +75,7 @@ export default function ConfigsPage(): JSX.Element {
 
   useEffect(() => {
     void loadConfigs();
-  }, []);
+  }, [appKey]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -91,7 +95,7 @@ export default function ConfigsPage(): JSX.Element {
     setSaving(true);
     setError('');
     try {
-      await upsertConfig(key, payload);
+      await upsertConfig(key, payload, appKey);
       setForm(defaultForm);
       await loadConfigs();
     } catch (e) {
@@ -109,7 +113,7 @@ export default function ConfigsPage(): JSX.Element {
     }
     setError('');
     try {
-      await deleteConfig(config.configKey);
+      await deleteConfig(config.configKey, appKey);
       await loadConfigs();
     } catch (e) {
       const message = e instanceof Error ? e.message : '删除配置失败';
