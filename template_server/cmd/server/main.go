@@ -12,7 +12,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/joho/godotenv"
 
 	"appbox/appbox_server/internal/api/router"
 	"appbox/appbox_server/internal/config"
@@ -22,8 +21,6 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load()
-
 	cfg, err := config.Load()
 	if err != nil {
 		logger.Fatalf("load config failed: %v", err)

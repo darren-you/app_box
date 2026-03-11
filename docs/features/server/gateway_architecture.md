@@ -139,13 +139,13 @@ sequenceDiagram
 
 配置项：
 
-- `STELLAR_PROVIDER_NAME`
-- `STELLAR_API_BASE_URL`
-- `STELLAR_GATEWAY_HEADER`
-- `STELLAR_GATEWAY_KEY`
-- `STELLAR_TIMEOUT`
+- `provider.stellar.name`
+- `provider.stellar.base_url`
+- `provider.stellar.gateway_header`
+- `provider.stellar.gateway_key`
+- `provider.stellar.timeout`
 
-参考：`/Users/darrenyou/VscodeProjects/appbox/template_server/.env.example`
+参考：`/Users/darrenyou/Projects/appbox/template_server/config/config.yaml`
 
 ## 6. 扩展策略
 

@@ -6,7 +6,7 @@
 
 - 管理员登录：`POST /api/v1/auth/admin/login`
 - 管理员信息：`GET /api/v1/admin/auth/me`
-- 星烁管理接口透传（启用 `STELLAR_ENABLED=true` 后生效）：
+- 星烁管理接口透传（在 YAML 中启用 `provider.stellar.enabled: true` 后生效）：
   - `GET /api/v1/admin/users`
   - `GET /api/v1/admin/users/:id/planets`
   - `PUT /api/v1/admin/users/:id`
@@ -14,7 +14,7 @@
   - `GET /api/v1/admin/configs`
   - `PUT /api/v1/admin/configs/:key`
   - `DELETE /api/v1/admin/configs/:key`
-- TinyText 用户管理透传（启用 `TINYTEXT_ENABLED=true` 后生效）：
+- TinyText 用户管理透传（在 YAML 中启用 `provider.tinytext.enabled: true` 后生效）：
   - `GET /api/v1/admin/users`
 - provider 列表：`GET /api/v1/admin/providers`
 - 健康检查：`GET /api/v1/health`
@@ -32,10 +32,10 @@
 
 ## 运行
 
-1. 复制配置文件并按环境修改：
+1. 修改本地配置文件：
 
 ```bash
-cp .env.example .env
+vim config/config.yaml
 ```
 
 2. 启动：
@@ -58,7 +58,7 @@ git submodule update --init --recursive
 
 ```bash
 cd template_server
-BuildBranch=origin/master BUILD_ENV=production \
+BuildBranch=origin/master BuildEnv=prod \
 bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
 
@@ -66,9 +66,19 @@ bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/de
 
 ```bash
 cd template_server
-BuildBranch=origin/develop BUILD_ENV=development \
+BuildBranch=origin/develop BuildEnv=test \
 bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
+
+## 配置加载
+
+- 服务运行时固定读取 `config/config.yaml`
+- 本地开发直接维护 `config/config.yaml`
+- CICD 构建时：
+  - `BuildEnv=test` 使用 `config/config.dev.yaml`
+  - `BuildEnv=prod` 使用 `config/config.prod.yaml`
+- 构建阶段会将目标环境 YAML 复制为镜像内最终生效的 `config/config.yaml`
+- 业务配置统一由 YAML 管理
 
 ## 与 appbox_web 对接
 
@@ -80,31 +90,35 @@ http://localhost:8090/api/v1
 
 ## Stellar provider 配置
 
-若要打通星烁管理能力，`appbox_server` 所在环境的 `env-file` 需至少包含：
+若要打通星烁管理能力，`appbox_server` 所在环境的 YAML 需至少配置：
 
-```dotenv
-STELLAR_ENABLED=true
-STELLAR_PROVIDER_NAME=stellar
-STELLAR_API_BASE_URL=http://stellar:8000/api/v1
-STELLAR_GATEWAY_HEADER=X-Gateway-Key
-STELLAR_GATEWAY_KEY=replace-with-a-shared-gateway-key
+```yaml
+provider:
+  stellar:
+    enabled: true
+    name: stellar
+    base_url: http://stellar:8000/api/v1
+    gateway_header: X-Gateway-Key
+    gateway_key: replace-with-a-shared-gateway-key
 ```
 
-`STELLAR_GATEWAY_KEY` 必须与星烁服务里的 `GATEWAY_ADMIN_KEY` 一致，`/api/v1/admin/*` 只允许通过该服务间鉴权方式访问。
+`provider.stellar.gateway_key` 必须与星烁服务里的 `gateway.admin_key` 一致，`/api/v1/admin/*` 只允许通过该服务间鉴权方式访问。
 
 ## TinyText provider 配置
 
-若要真正打通 TinyText 的“用户管理”，`appbox_server` 所在环境的 `env-file` 需至少包含：
+若要真正打通 TinyText 的“用户管理”，`appbox_server` 所在环境的 YAML 需至少配置：
 
-```dotenv
-TINYTEXT_ENABLED=true
-TINYTEXT_PROVIDER_NAME=tinytext
-TINYTEXT_API_BASE_URL=http://127.0.0.1:8080/api/v1
-TINYTEXT_GATEWAY_HEADER=X-Gateway-Key
-TINYTEXT_GATEWAY_KEY=replace-with-a-shared-gateway-key
+```yaml
+provider:
+  tinytext:
+    enabled: true
+    name: tinytext
+    base_url: http://127.0.0.1:8080/api/v1
+    gateway_header: X-Gateway-Key
+    gateway_key: replace-with-a-shared-gateway-key
 ```
 
-其中 `TINYTEXT_GATEWAY_KEY` 必须与 TinyText 服务里的 `GATEWAY_AUTH_KEY` 一致。
+其中 `provider.tinytext.gateway_key` 必须与 TinyText 服务里的 `gateway_auth.key` 一致。
 
 ## 多 app 扩展
 

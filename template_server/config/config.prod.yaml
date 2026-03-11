@@ -1,0 +1,35 @@
+server:
+  host: 0.0.0.0
+  port: 8090
+  read_timeout: 10s
+  write_timeout: 10s
+
+cors:
+  allow_origins: https://appbox.xdarren.com
+
+jwt:
+  secret_key: 26af007383b3b95b54c9dc4dbf797eb4ec91aa441d22d5a221433aaebf02d3f4
+  expires_in: 2h
+  refresh_expires_in: 168h
+
+admin:
+  username: appbox_admin
+  email: appbox_admin@local
+  password: pass_the_appbox_admin
+
+provider:
+  default: tinytext
+  stellar:
+    enabled: true
+    name: stellar
+    base_url: http://stellar:8000/api/v1
+    gateway_header: X-Gateway-Key
+    gateway_key: d810ea4beed31ef9feddd3562baef08c58039dac7680392dafb9a929632f0137
+    timeout: 10s
+  tinytext:
+    enabled: true
+    name: tinytext
+    base_url: https://tinytext.xdarren.com/api/v1
+    gateway_header: X-Gateway-Key
+    gateway_key: 9998ae434a760ff2a885c1166d8ecf6558055adb31e95bd8b367edea58f8cf35
+    timeout: 10s

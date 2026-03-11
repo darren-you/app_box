@@ -1,0 +1,35 @@
+server:
+  host: 0.0.0.0
+  port: 8090
+  read_timeout: 10s
+  write_timeout: 10s
+
+cors:
+  allow_origins: "*"
+
+jwt:
+  secret_key: please-change-this-secret
+  expires_in: 2h
+  refresh_expires_in: 168h
+
+admin:
+  username: app_box_admin
+  email: appbox_admin@local
+  password: pass_the_appbox_admin
+
+provider:
+  default: ""
+  stellar:
+    enabled: false
+    name: stellar
+    base_url: http://127.0.0.1:8080/api/v1
+    gateway_header: X-Gateway-Key
+    gateway_key: please-change-this-gateway-key
+    timeout: 10s
+  tinytext:
+    enabled: false
+    name: tinytext
+    base_url: http://127.0.0.1:8081/api/v1
+    gateway_header: X-Gateway-Key
+    gateway_key: please-change-this-gateway-key
+    timeout: 10s

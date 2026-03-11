@@ -63,20 +63,21 @@ sequenceDiagram
 - 不允许保留“没有 `X-Gateway-Key` 时再回退管理员登录”的兼容逻辑
 - 如果历史服务仍保留旧的后台登录接口，也不能作为 AppBox 接入链路的一部分
 
-## 2.5 app_server 侧环境变量要求
+## 2.5 app_server 侧 YAML 配置要求
 
 `app_server` 至少需要补齐以下配置：
 
-```dotenv
-GATEWAY_AUTH_HEADER=X-Gateway-Key
-GATEWAY_ADMIN_KEY=replace-with-a-shared-gateway-key
+```yaml
+gateway:
+  auth_header: X-Gateway-Key
+  admin_key: replace-with-a-shared-gateway-key
 ```
 
 要求：
 
-- `GATEWAY_ADMIN_KEY` 与网关侧 `STELLAR_GATEWAY_KEY` / `FOO_GATEWAY_KEY` 严格一致
-- `GATEWAY_AUTH_HEADER` 若未特殊说明，统一为 `X-Gateway-Key`
-- 发布前必须确保目标环境已实际注入该配置，而不是只改代码未改 env-file
+- `gateway.admin_key` 与网关侧 `provider.stellar.gateway_key` / `provider.foo.gateway_key` 严格一致
+- `gateway.auth_header` 若未特殊说明，统一为 `X-Gateway-Key`
+- 发布前必须确保目标环境 YAML 已更新，并通过 CICD 重新构建部署
 
 ## 2.4 统一响应结构
 
@@ -123,7 +124,7 @@ flowchart TD
 - `GatewayKey`
 - `Timeout`
 
-并在 `.env.example` 新增对应环境变量。
+并在 `config/config.yaml`、`config/config.dev.yaml`、`config/config.prod.yaml` 新增对应配置。
 
 禁止做法：
 
@@ -157,7 +158,7 @@ if cfg.Provider.Foo.Enabled {
 
 设置：
 
-- `DEFAULT_APP_PROVIDER=foo`
+- `provider.default: foo`
 
 若不设置，前端可通过 `X-App-Key: foo` 精确指定。
 
@@ -193,9 +194,9 @@ flowchart TD
 
 当前 `stellar` 已是完整样例：
 
-- provider 实现：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/service/stellar_provider.go`
-- provider 配置：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/config/config.go`
-- 示例环境变量：`/Users/darrenyou/VscodeProjects/appbox/template_server/.env.example`
+- provider 实现：`/Users/darrenyou/Projects/appbox/template_server/internal/service/stellar_provider.go`
+- provider 配置：`/Users/darrenyou/Projects/appbox/template_server/internal/config/config.go`
+- 示例 YAML：`/Users/darrenyou/Projects/appbox/template_server/config/config.yaml`
 
 ## 6. 联调检查清单
 

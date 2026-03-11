@@ -23,15 +23,11 @@ REMOTE_CONTAINER_PORT="8090"
 # 生产环境
 PROD_HOST_PORT="8090"
 PROD_CONTAINER_IP=""
-# 启用 Provider 时，远端 env-file 需要补齐服务间鉴权配置
-PROD_ENV_FILE="/opt/appbox_server/.env.production"
 PROD_LOG_PATH=""
 
 # 测试环境
 TEST_HOST_PORT="8091"
 TEST_CONTAINER_IP=""
-# 开发/测试环境联调 TinyText 时，同样需要补齐 TINYTEXT_* 变量
-TEST_ENV_FILE="/opt/appbox_server/.env.development"
 TEST_LOG_PATH=""
 
 # =========================================

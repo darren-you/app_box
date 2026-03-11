@@ -4,6 +4,7 @@ ARG BASE_IMAGE_REGISTRY
 ARG BUILDER_BASE_IMAGE
 ARG RUNTIME_BASE_IMAGE
 ARG PROJECT_NAME
+ARG BUILD_ENV
 
 FROM ${BASE_IMAGE_REGISTRY}/${BUILDER_BASE_IMAGE} AS builder
 
@@ -26,14 +27,18 @@ WORKDIR /app
 
 RUN apk add --no-cache ca-certificates tzdata
 
-ARG ENV
+ARG BUILD_ENV
 ARG PROJECT_NAME
 ARG REMOTE_CONTAINER_PORT
-ENV APP_ENV=${ENV}
 ENV PROJECT_NAME=${PROJECT_NAME}
-ENV SERVER_PORT=${REMOTE_CONTAINER_PORT}
 
 COPY --from=builder /out/ /out/
+COPY --from=builder /src/config ./config
+RUN case "$BUILD_ENV" in \
+      prod) cp ./config/config.prod.yaml ./config/config.yaml ;; \
+      test) cp ./config/config.dev.yaml ./config/config.yaml ;; \
+      *) echo "unsupported BUILD_ENV: $BUILD_ENV" >&2; exit 1 ;; \
+    esac
 RUN cp "/out/${PROJECT_NAME}" /usr/local/bin/server && rm -rf /out
 
 EXPOSE ${REMOTE_CONTAINER_PORT}

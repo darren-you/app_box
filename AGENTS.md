@@ -29,7 +29,7 @@
 ## Deployment And Verification
 
 - 当用户明确要求“部署、上线、修复线上配置并验证”时，Agent 可以直接在本地调用 `deploy_shell` 中的脚本，不必先等待 Jenkins。
-- 优先执行完整流水线；只有在明确知道只是远端环境变量或容器现场问题时，才直接 SSH 登录服务器处理。
+- 优先执行完整流水线；只有在明确知道只是线上 YAML 配置核对、容器现场问题或 nginx 转发问题时，才直接 SSH 登录服务器处理。
 - 执行部署后，必须补做线上验证，至少覆盖首页、健康检查和本次变更涉及的关键接口或页面。
 - `AGENTS.md` 中禁止写入某个具体项目专属的域名、服务器 IP、账号密码、固定容器名、固定部署目录等硬编码信息。
 - 所有部署命令、验证地址、SSH 目标都必须优先从当前项目实际存在的 `deploy_config.sh`、项目目录结构和线上返回结果中动态读取，不要把某个项目的现场信息写成通用规则。
@@ -70,7 +70,7 @@ curl -i https://<api-domain>/api/v1/health
 
 ## Server SSH
 
-- 当需要排查线上容器、端口映射、远端环境变量、nginx 转发或日志问题时，Agent 可以直接 SSH 登录宿主机处理。
+- 当需要排查线上容器、端口映射、线上实际 YAML 配置、nginx 转发或日志问题时，Agent 可以直接 SSH 登录宿主机处理。
 - SSH 目标必须优先从当前项目 `deploy_config.sh` 中读取，例如：
   - `DEPLOY_HOST`
   - `DEPLOY_PORT`
@@ -87,7 +87,6 @@ sshpass -p '<password>' ssh -o StrictHostKeyChecking=no -p <port> <user>@<host>
 
 排查时优先先读当前项目配置，再决定是否连接服务器，不要预设以下信息：
 
-- 远端环境文件路径
 - 远端部署目录
 - 容器名
 - Docker 网络名
@@ -95,6 +94,6 @@ sshpass -p '<password>' ssh -o StrictHostKeyChecking=no -p <port> <user>@<host>
 
 重要注意事项：
 
-- 修改远端 `.env.prod` / `.env.test` 后，不能只执行 `docker restart`。
-- `docker restart` 不会重新加载 `docker run --env-file` 指定的环境文件。
-- 远端环境变量变更要生效，必须重新创建容器，或直接重新执行后端部署脚本。
+- `template_server` 业务配置只认 `config/config.yaml`；环境差异通过 `config/config.dev.yaml` 与 `config/config.prod.yaml` 在构建阶段收口。
+- 修改 YAML 后必须重新执行后端部署脚本，不能依赖 `docker restart`、远端 `.env` 或临时环境变量覆盖来生效。
+- 不确定线上当前值时，直接 SSH 登录部署机，优先查看当前容器内生效的 `config/config.yaml` 与镜像标签。

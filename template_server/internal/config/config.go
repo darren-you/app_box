@@ -3,9 +3,11 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
@@ -64,74 +66,82 @@ type TinyTextProviderConfig struct {
 }
 
 func Load() (*Config, error) {
+	cfgPath, err := resolveConfigPath()
+	if err != nil {
+		return nil, err
+	}
+
+	raw := defaultRawConfig()
+	data, err := os.ReadFile(cfgPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file %q: %w", cfgPath, err)
+	}
+	if err := yaml.Unmarshal(data, &raw); err != nil {
+		return nil, fmt.Errorf("failed to parse config file %q: %w", cfgPath, err)
+	}
+
 	cfg := &Config{
 		Server: ServerConfig{
-			Host:         getEnv("SERVER_HOST", "0.0.0.0"),
-			Port:         getEnvInt("SERVER_PORT", 8090),
-			ReadTimeout:  getEnvDuration("SERVER_READ_TIMEOUT", 10*time.Second),
-			WriteTimeout: getEnvDuration("SERVER_WRITE_TIMEOUT", 10*time.Second),
+			Host:         normalizeString(raw.Server.Host, "0.0.0.0"),
+			Port:         normalizeInt(raw.Server.Port, 8090),
+			ReadTimeout:  parseDuration(raw.Server.ReadTimeout, 10*time.Second),
+			WriteTimeout: parseDuration(raw.Server.WriteTimeout, 10*time.Second),
 		},
 		CORS: CORSConfig{
-			AllowOrigins: getEnv("CORS_ALLOW_ORIGINS", "*"),
+			AllowOrigins: normalizeString(raw.CORS.AllowOrigins, "*"),
 		},
 		JWT: JWTConfig{
-			SecretKey:        getEnv("JWT_SECRET_KEY", "please-change-this-secret"),
-			ExpiresIn:        getEnvDuration("JWT_EXPIRES_IN", 2*time.Hour),
-			RefreshExpiresIn: getEnvDuration("JWT_REFRESH_EXPIRES_IN", 168*time.Hour),
+			SecretKey:        normalizeString(raw.JWT.SecretKey, "please-change-this-secret"),
+			ExpiresIn:        parseDuration(raw.JWT.ExpiresIn, 2*time.Hour),
+			RefreshExpiresIn: parseDuration(raw.JWT.RefreshExpiresIn, 168*time.Hour),
 		},
 		Admin: AdminConfig{
-			Username: getEnv("ADMIN_USERNAME", "appbox_admin"),
-			Email:    getEnv("ADMIN_EMAIL", "appbox_admin@local"),
-			Password: getEnv("ADMIN_PASSWORD", "pass_the_appbox_admin"),
+			Username: normalizeString(raw.Admin.Username, "app_box_admin"),
+			Email:    normalizeString(raw.Admin.Email, "appbox_admin@local"),
+			Password: normalizeString(raw.Admin.Password, "pass_the_appbox_admin"),
 		},
 		Provider: ProviderConfig{
-			Default: strings.TrimSpace(getEnv("DEFAULT_APP_PROVIDER", "")),
+			Default: strings.TrimSpace(raw.Provider.Default),
 			Stellar: StellarProviderConfig{
-				Enabled:     getEnvBool("STELLAR_ENABLED", false),
-				Name:        strings.TrimSpace(getEnv("STELLAR_PROVIDER_NAME", "stellar")),
-				BaseURL:     normalizeBaseURL(getEnv("STELLAR_API_BASE_URL", "http://127.0.0.1:8080/api/v1")),
-				GatewayKey:  strings.TrimSpace(getEnv("STELLAR_GATEWAY_KEY", "")),
-				GatewayHead: strings.TrimSpace(getEnv("STELLAR_GATEWAY_HEADER", "X-Gateway-Key")),
-				Timeout:     getEnvDuration("STELLAR_TIMEOUT", 10*time.Second),
+				Enabled:     raw.Provider.Stellar.Enabled,
+				Name:        normalizeString(raw.Provider.Stellar.Name, "stellar"),
+				BaseURL:     normalizeBaseURL(raw.Provider.Stellar.BaseURL),
+				GatewayKey:  strings.TrimSpace(raw.Provider.Stellar.GatewayKey),
+				GatewayHead: normalizeString(raw.Provider.Stellar.GatewayHead, "X-Gateway-Key"),
+				Timeout:     parseDuration(raw.Provider.Stellar.Timeout, 10*time.Second),
 			},
 			TinyText: TinyTextProviderConfig{
-				Enabled:     getEnvBool("TINYTEXT_ENABLED", false),
-				Name:        strings.TrimSpace(getEnv("TINYTEXT_PROVIDER_NAME", "tinytext")),
-				BaseURL:     normalizeBaseURL(getEnv("TINYTEXT_API_BASE_URL", "http://127.0.0.1:8080/api/v1")),
-				GatewayKey:  strings.TrimSpace(getEnv("TINYTEXT_GATEWAY_KEY", "")),
-				GatewayHead: strings.TrimSpace(getEnv("TINYTEXT_GATEWAY_HEADER", "X-Gateway-Key")),
-				Timeout:     getEnvDuration("TINYTEXT_TIMEOUT", 10*time.Second),
+				Enabled:     raw.Provider.TinyText.Enabled,
+				Name:        normalizeString(raw.Provider.TinyText.Name, "tinytext"),
+				BaseURL:     normalizeBaseURL(raw.Provider.TinyText.BaseURL),
+				GatewayKey:  strings.TrimSpace(raw.Provider.TinyText.GatewayKey),
+				GatewayHead: normalizeString(raw.Provider.TinyText.GatewayHead, "X-Gateway-Key"),
+				Timeout:     parseDuration(raw.Provider.TinyText.Timeout, 10*time.Second),
 			},
 		},
 	}
 
 	if cfg.Provider.Stellar.Enabled {
 		if cfg.Provider.Stellar.Name == "" {
-			return nil, fmt.Errorf("STELLAR_PROVIDER_NAME is required when stellar provider is enabled")
+			return nil, fmt.Errorf("provider.stellar.name is required when stellar provider is enabled")
 		}
 		if cfg.Provider.Stellar.BaseURL == "" {
-			return nil, fmt.Errorf("STELLAR_API_BASE_URL is required when stellar provider is enabled")
+			return nil, fmt.Errorf("provider.stellar.base_url is required when stellar provider is enabled")
 		}
 		if cfg.Provider.Stellar.GatewayKey == "" {
-			return nil, fmt.Errorf("STELLAR_GATEWAY_KEY is required when stellar provider is enabled")
-		}
-		if cfg.Provider.Stellar.GatewayHead == "" {
-			cfg.Provider.Stellar.GatewayHead = "X-Gateway-Key"
+			return nil, fmt.Errorf("provider.stellar.gateway_key is required when stellar provider is enabled")
 		}
 	}
 
 	if cfg.Provider.TinyText.Enabled {
 		if cfg.Provider.TinyText.Name == "" {
-			return nil, fmt.Errorf("TINYTEXT_PROVIDER_NAME is required when tinytext provider is enabled")
+			return nil, fmt.Errorf("provider.tinytext.name is required when tinytext provider is enabled")
 		}
 		if cfg.Provider.TinyText.BaseURL == "" {
-			return nil, fmt.Errorf("TINYTEXT_API_BASE_URL is required when tinytext provider is enabled")
+			return nil, fmt.Errorf("provider.tinytext.base_url is required when tinytext provider is enabled")
 		}
 		if cfg.Provider.TinyText.GatewayKey == "" {
-			return nil, fmt.Errorf("TINYTEXT_GATEWAY_KEY is required when tinytext provider is enabled")
-		}
-		if cfg.Provider.TinyText.GatewayHead == "" {
-			cfg.Provider.TinyText.GatewayHead = "X-Gateway-Key"
+			return nil, fmt.Errorf("provider.tinytext.gateway_key is required when tinytext provider is enabled")
 		}
 	}
 
@@ -144,40 +154,127 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
-func getEnv(key, fallback string) string {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
+type rawConfig struct {
+	Server   rawServerConfig   `yaml:"server"`
+	CORS     rawCORSConfig     `yaml:"cors"`
+	JWT      rawJWTConfig      `yaml:"jwt"`
+	Admin    rawAdminConfig    `yaml:"admin"`
+	Provider rawProviderConfig `yaml:"provider"`
+}
+
+type rawServerConfig struct {
+	Host         string `yaml:"host"`
+	Port         int    `yaml:"port"`
+	ReadTimeout  string `yaml:"read_timeout"`
+	WriteTimeout string `yaml:"write_timeout"`
+}
+
+type rawCORSConfig struct {
+	AllowOrigins string `yaml:"allow_origins"`
+}
+
+type rawJWTConfig struct {
+	SecretKey        string `yaml:"secret_key"`
+	ExpiresIn        string `yaml:"expires_in"`
+	RefreshExpiresIn string `yaml:"refresh_expires_in"`
+}
+
+type rawAdminConfig struct {
+	Username string `yaml:"username"`
+	Email    string `yaml:"email"`
+	Password string `yaml:"password"`
+}
+
+type rawProviderConfig struct {
+	Default  string                 `yaml:"default"`
+	Stellar  rawProviderItemConfig  `yaml:"stellar"`
+	TinyText rawProviderItemConfig  `yaml:"tinytext"`
+}
+
+type rawProviderItemConfig struct {
+	Enabled     bool   `yaml:"enabled"`
+	Name        string `yaml:"name"`
+	BaseURL     string `yaml:"base_url"`
+	GatewayKey  string `yaml:"gateway_key"`
+	GatewayHead string `yaml:"gateway_header"`
+	Timeout     string `yaml:"timeout"`
+}
+
+func defaultRawConfig() rawConfig {
+	return rawConfig{
+		Server: rawServerConfig{
+			Host:         "0.0.0.0",
+			Port:         8090,
+			ReadTimeout:  "10s",
+			WriteTimeout: "10s",
+		},
+		CORS: rawCORSConfig{
+			AllowOrigins: "*",
+		},
+		JWT: rawJWTConfig{
+			SecretKey:        "please-change-this-secret",
+			ExpiresIn:        "2h",
+			RefreshExpiresIn: "168h",
+		},
+		Admin: rawAdminConfig{
+			Username: "app_box_admin",
+			Email:    "appbox_admin@local",
+			Password: "pass_the_appbox_admin",
+		},
+		Provider: rawProviderConfig{
+			Default: "",
+			Stellar: rawProviderItemConfig{
+				Enabled:     false,
+				Name:        "stellar",
+				BaseURL:     "http://127.0.0.1:8080/api/v1",
+				GatewayKey:  "",
+				GatewayHead: "X-Gateway-Key",
+				Timeout:     "10s",
+			},
+			TinyText: rawProviderItemConfig{
+				Enabled:     false,
+				Name:        "tinytext",
+				BaseURL:     "http://127.0.0.1:8081/api/v1",
+				GatewayKey:  "",
+				GatewayHead: "X-Gateway-Key",
+				Timeout:     "10s",
+			},
+		},
+	}
+}
+
+func resolveConfigPath() (string, error) {
+	candidates := []string{
+		filepath.Join("config", "config.yaml"),
+		"config.yaml",
+	}
+
+	for _, path := range candidates {
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
+	}
+
+	return "", fmt.Errorf("config file not found; tried: %s", strings.Join(candidates, ", "))
+}
+
+func normalizeString(value string, fallback string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return fallback
+	}
+	return trimmed
+}
+
+func normalizeInt(value int, fallback int) int {
+	if value <= 0 {
 		return fallback
 	}
 	return value
 }
 
-func getEnvInt(key string, fallback int) int {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
-		return fallback
-	}
-	parsed, err := strconv.Atoi(value)
-	if err != nil {
-		return fallback
-	}
-	return parsed
-}
-
-func getEnvBool(key string, fallback bool) bool {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
-		return fallback
-	}
-	parsed, err := strconv.ParseBool(value)
-	if err != nil {
-		return fallback
-	}
-	return parsed
-}
-
-func getEnvDuration(key string, fallback time.Duration) time.Duration {
-	value := strings.TrimSpace(os.Getenv(key))
+func parseDuration(raw string, fallback time.Duration) time.Duration {
+	value := strings.TrimSpace(raw)
 	if value == "" {
 		return fallback
 	}
