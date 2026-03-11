@@ -9,7 +9,8 @@
 - `docs` 目录结构必须固定为：`docs/api`、`docs/features/app`、`docs/features/server`、`docs/features/web`、`docs/issues/app`、`docs/issues/server`、`docs/issues/web`。
 - API 文档只能放在 `docs/api`；feature 文档只能放在 `docs/features/*`；issues 文档只能放在 `docs/issues/*`。
 - 即使某个目录暂时没有文档，也必须保留该目录结构，必要时使用占位文件维持目录存在。
-- 遇到问题或开始排查前，先检索 `docs/issues` 中是否已经记录了类似问题及对应解决方案。
+- 仅在故障排查、bug 修复、线上问题定位或明确需要复盘历史问题时，优先检索 `docs/issues` 中是否已有类似记录及解决方案。
+- 对于明确的代码修改、文档修改、重构、实现新功能、纯说明类问题，不要求默认先检查仓库结构或检索 `docs/issues`。
 
 ## Documentation Naming
 
@@ -32,7 +33,7 @@
 - 执行部署后，必须补做线上验证，至少覆盖首页、健康检查和本次变更涉及的关键接口或页面。
 - `AGENTS.md` 中禁止写入某个具体项目专属的域名、服务器 IP、账号密码、固定容器名、固定部署目录等硬编码信息。
 - 所有部署命令、验证地址、SSH 目标都必须优先从当前项目实际存在的 `deploy_config.sh`、项目目录结构和线上返回结果中动态读取，不要把某个项目的现场信息写成通用规则。
-- `deploy_shell/jenkins_mac_mini_ssh_defaults.sh` 中维护的是 Jenkins 打包机 Mac mini 的共享 SSH 默认配置。
+- `deploy_shell/shared/jenkins_profiles/mac_mini.sh` 中维护的是 Jenkins 打包机 Mac mini 的共享 SSH profile；公共加载入口位于 `deploy_shell/shared/load_jenkins_profile.sh`。
 
 通用调用方式：
 
