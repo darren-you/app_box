@@ -14,14 +14,14 @@
 
 当前代码分层如下：
 
-- 启动与装配层：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/cmd/server/main.go`
-- 路由层：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/api/router/router.go`
-- 处理器层：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/api/handler`
-- 认证中间件：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/api/middleware/auth_middleware.go`
-- provider 抽象与注册中心：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/service/provider.go`
-- provider 实现（示例：stellar）：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/service/stellar_provider.go`
-- DTO 与响应协议：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/dto`
-- 配置层：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/config/config.go`
+- 启动与装配层：`/Users/darrenyou/VscodeProjects/appbox/template_server/cmd/server/main.go`
+- 路由层：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/api/router/router.go`
+- 处理器层：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/api/handler`
+- 认证中间件：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/api/middleware/auth_middleware.go`
+- provider 抽象与注册中心：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/service/provider.go`
+- provider 实现（示例：stellar）：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/service/stellar_provider.go`
+- DTO 与响应协议：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/dto`
+- 配置层：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/config/config.go`
 
 ### 2.1 总体架构图
 
@@ -145,7 +145,7 @@ sequenceDiagram
 - `STELLAR_GATEWAY_KEY`
 - `STELLAR_TIMEOUT`
 
-参考：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/.env.example`
+参考：`/Users/darrenyou/VscodeProjects/appbox/template_server/.env.example`
 
 ## 6. 扩展策略
 

@@ -5,7 +5,7 @@ xdarren 多应用后台（Vite + React 18 + TypeScript + CSS Modules）。
 ## 运行
 
 ```bash
-cd appbox_web
+cd template_web
 npm install
 npm run dev
 ```
@@ -25,7 +25,7 @@ VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1 npm run dev
 
 ## 打包与部署（deploy_shell）
 
-项目根目录通过 git submodule 引入了 `deploy_shell`，前端部署配置位于 `appbox_web/deploy_config.sh`。
+项目根目录通过 git submodule 引入了 `deploy_shell`，前端部署配置位于 `template_web/deploy_config.sh`。
 
 首次拉取仓库后先初始化子模块：
 
@@ -36,7 +36,7 @@ git submodule update --init --recursive
 执行部署（固定 production 构建）：
 
 ```bash
-cd appbox_web
+cd template_web
 bash ../deploy_shell/deploy_web/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
 

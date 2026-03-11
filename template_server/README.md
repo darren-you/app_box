@@ -46,7 +46,7 @@ go run ./cmd/server
 
 ## 打包与部署（deploy_shell）
 
-项目根目录通过 git submodule 引入了 `deploy_shell`，后端部署配置位于 `appbox_server/deploy_config.sh`。
+项目根目录通过 git submodule 引入了 `deploy_shell`，后端部署配置位于 `template_server/deploy_config.sh`。
 
 首次拉取仓库后先初始化子模块：
 
@@ -57,7 +57,7 @@ git submodule update --init --recursive
 生产环境部署：
 
 ```bash
-cd appbox_server
+cd template_server
 BuildBranch=origin/master BUILD_ENV=production \
 bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
@@ -65,7 +65,7 @@ bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/de
 开发环境部署：
 
 ```bash
-cd appbox_server
+cd template_server
 BuildBranch=origin/develop BUILD_ENV=development \
 bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```

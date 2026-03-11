@@ -193,9 +193,9 @@ flowchart TD
 
 当前 `stellar` 已是完整样例：
 
-- provider 实现：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/service/stellar_provider.go`
-- provider 配置：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/internal/config/config.go`
-- 示例环境变量：`/Users/darrenyou/VscodeProjects/appbox/appbox_server/.env.example`
+- provider 实现：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/service/stellar_provider.go`
+- provider 配置：`/Users/darrenyou/VscodeProjects/appbox/template_server/internal/config/config.go`
+- 示例环境变量：`/Users/darrenyou/VscodeProjects/appbox/template_server/.env.example`
 
 ## 6. 联调检查清单
 
