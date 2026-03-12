@@ -16,7 +16,6 @@ import (
 	"appbox/appbox_server/internal/api/router"
 	"appbox/appbox_server/internal/config"
 	"appbox/appbox_server/internal/service"
-	"appbox/appbox_server/internal/util"
 	"appbox/appbox_server/pkg/logger"
 )
 
@@ -36,17 +35,9 @@ func main() {
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: cfg.CORS.AllowOrigins,
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-App-Key",
+		AllowHeaders: "Origin, Content-Type, Accept, X-App-Key",
 		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
 	}))
-
-	jwtConfig := util.JWTConfig{
-		SecretKey:        cfg.JWT.SecretKey,
-		ExpiresIn:        cfg.JWT.ExpiresIn,
-		RefreshExpiresIn: cfg.JWT.RefreshExpiresIn,
-	}
-
-	adminAuthService := service.NewAdminAuthService(cfg.Admin, jwtConfig)
 	registry := service.NewProviderRegistry(cfg.Provider.Default)
 
 	if cfg.Provider.Stellar.Enabled {
@@ -61,7 +52,7 @@ func main() {
 		logger.Infof("provider registered: %s -> %s", tinytextProvider.Name(), cfg.Provider.TinyText.BaseURL)
 	}
 
-	router.SetupRoutes(app, adminAuthService, registry, jwtConfig)
+	router.SetupRoutes(app, registry)
 
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	go func() {

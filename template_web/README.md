@@ -17,11 +17,13 @@ npm run dev
 VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1 npm run dev
 ```
 
-## 管理员登录方式
+## 访问口令方式
 
-- 使用固定密码登录（无需账号）。
+- 线上通过 nginx `/gate/` 页面校验访问口令。
+- 本地开发若未接 nginx，会回退到前端静态 gate 校验。
 - 密码：`pass_the_appbox_admin`
-- 登录接口：`POST /api/v1/auth/admin/login`
+- 登录入口：`/gate/`
+- 网关登录接口：`POST /gate/api/login`
 
 ## 打包与部署（deploy_shell）
 

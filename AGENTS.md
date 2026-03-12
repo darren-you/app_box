@@ -26,6 +26,16 @@
 - 需要通过绝对路径直接访问的普通图片素材统一放在 `<web_dir>/public/assets/images`。
 - 仅在资源需要被前端代码 `import` 并参与打包时，才放在 `<web_dir>/src/assets`；不要把 favicon 或共享 icon 放在 `src/assets`。
 
+## Server YAML Config
+
+- `template_server` 服务运行配置统一使用 `template_server/config` 目录下的 YAML 文件，不再依赖远端 `.env.prod`、`.env.test`、`.env.production`、`.env.development` 或运行时环境变量覆盖业务配置。
+- `template_server/config/config.yaml` 是本地运行默认入口，也是容器内最终生效的固定配置文件名。
+- `template_server/config/config.dev.yaml` 用于 `BuildEnv=test` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
+- `template_server/config/config.prod.yaml` 用于 `BuildEnv=prod` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
+- 不要再为 `template_server` 新增 `APP_ENV`、`SERVER_PORT` 等运行时环境变量覆盖逻辑。
+- 修改 `template_server/config/config.dev.yaml` 或 `template_server/config/config.prod.yaml` 后，必须通过后端 CICD 重新构建并部署，不能指望远端热改环境变量生效。
+- 修改 `server.port` 时，必须同步检查 `template_server/deploy_config.sh` 中的 `REMOTE_CONTAINER_PORT`。
+
 ## Deployment And Verification
 
 - 当用户明确要求“部署、上线、修复线上配置并验证”时，Agent 可以直接在本地调用 `deploy_shell` 中的脚本，不必先等待 Jenkins。

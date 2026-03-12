@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/favicon-48x48.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#111827" />
+  <title>AppBox Gate</title>
+  <link rel="stylesheet" href="/gate/gate.css" />
+</head>
+
+<body>
+  <main class="gate-page">
+    <div class="gate-rays" aria-hidden="true"></div>
+
+    <form class="gate-form" id="gate-form">
+      <div class="gate-password-block">
+        <img src="/assets/icons/appbox_1024x1024.png" alt="AppBox" class="gate-logo" />
+
+        <label class="sr-only" for="password">密码</label>
+        <input id="password" name="password" type="password" class="gate-input" placeholder="密码"
+          autocomplete="current-password" required />
+      </div>
+
+      <button id="submit-button" class="gate-submit" type="submit" aria-label="登录">GO</button>
+      <p class="gate-error" id="gate-error" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <script type="module" src="/gate/gate.js"></script>
+</body>
+
+</html>

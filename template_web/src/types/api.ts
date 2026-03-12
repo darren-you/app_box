@@ -31,27 +31,6 @@ export interface PlanetItem {
   updatedAt: string;
 }
 
-export interface LoginRequest {
-  password: string;
-}
-
-export interface LoginResponse {
-  userId: number;
-  username: string;
-  email: string;
-  role: string;
-  accessToken: string;
-  refreshToken: string;
-  token: string;
-}
-
-export interface AdminProfile {
-  userId: number;
-  username: string;
-  email: string;
-  role: string;
-}
-
 export interface User {
   id: number;
   username: string;

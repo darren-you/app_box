@@ -13,8 +13,6 @@ import (
 type Config struct {
 	Server   ServerConfig
 	CORS     CORSConfig
-	JWT      JWTConfig
-	Admin    AdminConfig
 	Provider ProviderConfig
 }
 
@@ -27,18 +25,6 @@ type ServerConfig struct {
 
 type CORSConfig struct {
 	AllowOrigins string
-}
-
-type JWTConfig struct {
-	SecretKey        string
-	ExpiresIn        time.Duration
-	RefreshExpiresIn time.Duration
-}
-
-type AdminConfig struct {
-	Username string
-	Email    string
-	Password string
 }
 
 type ProviderConfig struct {
@@ -89,16 +75,6 @@ func Load() (*Config, error) {
 		},
 		CORS: CORSConfig{
 			AllowOrigins: normalizeString(raw.CORS.AllowOrigins, "*"),
-		},
-		JWT: JWTConfig{
-			SecretKey:        normalizeString(raw.JWT.SecretKey, "please-change-this-secret"),
-			ExpiresIn:        parseDuration(raw.JWT.ExpiresIn, 2*time.Hour),
-			RefreshExpiresIn: parseDuration(raw.JWT.RefreshExpiresIn, 168*time.Hour),
-		},
-		Admin: AdminConfig{
-			Username: normalizeString(raw.Admin.Username, "app_box_admin"),
-			Email:    normalizeString(raw.Admin.Email, "appbox_admin@local"),
-			Password: normalizeString(raw.Admin.Password, "pass_the_appbox_admin"),
 		},
 		Provider: ProviderConfig{
 			Default: strings.TrimSpace(raw.Provider.Default),
@@ -157,8 +133,6 @@ func Load() (*Config, error) {
 type rawConfig struct {
 	Server   rawServerConfig   `yaml:"server"`
 	CORS     rawCORSConfig     `yaml:"cors"`
-	JWT      rawJWTConfig      `yaml:"jwt"`
-	Admin    rawAdminConfig    `yaml:"admin"`
 	Provider rawProviderConfig `yaml:"provider"`
 }
 
@@ -171,18 +145,6 @@ type rawServerConfig struct {
 
 type rawCORSConfig struct {
 	AllowOrigins string `yaml:"allow_origins"`
-}
-
-type rawJWTConfig struct {
-	SecretKey        string `yaml:"secret_key"`
-	ExpiresIn        string `yaml:"expires_in"`
-	RefreshExpiresIn string `yaml:"refresh_expires_in"`
-}
-
-type rawAdminConfig struct {
-	Username string `yaml:"username"`
-	Email    string `yaml:"email"`
-	Password string `yaml:"password"`
 }
 
 type rawProviderConfig struct {
@@ -210,16 +172,6 @@ func defaultRawConfig() rawConfig {
 		},
 		CORS: rawCORSConfig{
 			AllowOrigins: "*",
-		},
-		JWT: rawJWTConfig{
-			SecretKey:        "please-change-this-secret",
-			ExpiresIn:        "2h",
-			RefreshExpiresIn: "168h",
-		},
-		Admin: rawAdminConfig{
-			Username: "app_box_admin",
-			Email:    "appbox_admin@local",
-			Password: "pass_the_appbox_admin",
 		},
 		Provider: rawProviderConfig{
 			Default: "",

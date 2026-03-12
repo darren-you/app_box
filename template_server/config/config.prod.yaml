@@ -7,16 +7,6 @@ server:
 cors:
   allow_origins: https://appbox.xdarren.com
 
-jwt:
-  secret_key: 26af007383b3b95b54c9dc4dbf797eb4ec91aa441d22d5a221433aaebf02d3f4
-  expires_in: 2h
-  refresh_expires_in: 168h
-
-admin:
-  username: appbox_admin
-  email: appbox_admin@local
-  password: pass_the_appbox_admin
-
 provider:
   default: tinytext
   stellar:

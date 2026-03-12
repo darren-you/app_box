@@ -19,8 +19,8 @@ sequenceDiagram
     participant GW as "appbox/appbox_server"
     participant APP as "app_server"
 
-    FE->>GW: "请求 /api/v1/admin/users (Authorization, X-App-Key)"
-    GW->>GW: "JWT 校验 + provider 解析"
+    FE->>GW: "请求 /api/v1/admin/users (X-App-Key)"
+    GW->>GW: "nginx gate 已放行 + provider 解析"
     GW->>APP: "请求 /api/v1/admin/users (X-Gateway-Key)"
     APP-->>GW: "{code,msg,data}"
     GW-->>FE: "统一响应"
@@ -183,7 +183,6 @@ flowchart TD
 
 前端调用网关无需关心具体 app 地址，仅需：
 
-- 携带网关 JWT（`Authorization`）
 - 通过以下任一方式指定 app：
   - Header：`X-App-Key: <provider_name>`
   - Query：`?app=<provider_name>`

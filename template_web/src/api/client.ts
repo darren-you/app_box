@@ -1,41 +1,21 @@
 import type { ApiResponse } from '../types/api';
+import { clearClientGateAccess, redirectToGate } from '../gate';
 
-const TOKEN_KEY = 'stellar_bms_token';
 const API_BASE = normalizeApiBase(
   import.meta.env.VITE_API_BASE_URL || '/api/v1'
 );
 
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-export function getToken(): string {
-  return localStorage.getItem(TOKEN_KEY) || '';
-}
-
-export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
-}
-
 interface RequestOptions extends Omit<RequestInit, 'body'> {
-  auth?: boolean;
   appKey?: string;
   body?: unknown;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { auth = true, appKey = '', body, headers, ...rest } = options;
+  const { appKey = '', body, headers, ...rest } = options;
   const finalHeaders = new Headers(headers);
 
   if (body !== undefined && body !== null) {
     finalHeaders.set('Content-Type', 'application/json');
-  }
-
-  if (auth) {
-    const token = getToken();
-    if (token) {
-      finalHeaders.set('Authorization', `Bearer ${token}`);
-    }
   }
 
   if (appKey.trim()) {
@@ -47,12 +27,30 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   try {
     response = await fetch(url, {
       ...rest,
+      credentials: rest.credentials ?? 'same-origin',
       headers: finalHeaders,
       body: body !== undefined && body !== null ? JSON.stringify(body) : undefined
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : '网络请求失败';
     throw new Error(`请求失败: ${message} (URL: ${url})`);
+  }
+
+  if (response.status === 401) {
+    clearClientGateAccess();
+    window.sessionStorage.clear();
+    redirectToGate();
+    throw new Error('访问口令已失效');
+  }
+
+  if (response.redirected) {
+    const redirectedUrl = new URL(response.url);
+    if (redirectedUrl.pathname.startsWith('/gate')) {
+      clearClientGateAccess();
+      window.sessionStorage.clear();
+      window.location.replace(redirectedUrl.toString());
+      throw new Error('访问口令已失效');
+    }
   }
 
   const rawText = await response.text();

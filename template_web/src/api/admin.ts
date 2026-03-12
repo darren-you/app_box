@@ -1,28 +1,13 @@
 import { request } from './client';
 import type {
   AdminUsersPaginationResponse,
-  AdminProfile,
   AppConfig,
   AppConfigUpsertRequest,
-  LoginRequest,
-  LoginResponse,
   PaginationResponse,
   PlanetItem,
   User,
   AdminUserUpdateRequest
 } from '../types/api';
-
-export async function login(payload: LoginRequest): Promise<LoginResponse> {
-  return request<LoginResponse>('/auth/admin/login', {
-    method: 'POST',
-    auth: false,
-    body: payload
-  });
-}
-
-export async function getAdminMe(): Promise<AdminProfile> {
-  return request<AdminProfile>('/admin/auth/me', { method: 'GET' });
-}
 
 export async function listProviders(): Promise<string[]> {
   return request<string[]>('/admin/providers', { method: 'GET' });

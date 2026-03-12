@@ -7,16 +7,6 @@ server:
 cors:
   allow_origins: "*"
 
-jwt:
-  secret_key: please-change-this-secret
-  expires_in: 2h
-  refresh_expires_in: 168h
-
-admin:
-  username: app_box_admin
-  email: appbox_admin@local
-  password: pass_the_appbox_admin
-
 provider:
   default: ""
   stellar:

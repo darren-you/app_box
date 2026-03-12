@@ -1,11 +1,9 @@
 # appbox_server
 
-`appbox` 后台管理网关服务，已把原来写在 `stellar-go` 的后台登录能力和多应用管理接口接入能力抽离到这里。
+`appbox` 后台管理网关服务，负责聚合多应用后台管理接口；管理端访问口令校验由 nginx `/gate` 负责，`appbox_server` 本身不再承担登录或 JWT 鉴权。
 
 ## 已实现能力
 
-- 管理员登录：`POST /api/v1/auth/admin/login`
-- 管理员信息：`GET /api/v1/admin/auth/me`
 - 星烁管理接口透传（在 YAML 中启用 `provider.stellar.enabled: true` 后生效）：
   - `GET /api/v1/admin/users`
   - `GET /api/v1/admin/users/:id/planets`
@@ -43,6 +41,12 @@ vim config/config.yaml
 ```bash
 go run ./cmd/server
 ```
+
+## 访问控制
+
+- 线上访问控制由 nginx `/gate` 完成。
+- 前端进入 `https://appbox.xdarren.com/` 前，会先经过 `/gate/` 输入访问口令。
+- `appbox_server` 仅负责 `/api/v1/admin/*` 的 provider 聚合与上游转发。
 
 ## 打包与部署（deploy_shell）
 
