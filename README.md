@@ -9,7 +9,7 @@
 - `template_web/`：基于 `React 18 + TypeScript + Vite` 的后台工作台，按 provider 动态展示菜单与页面。
 - `template_server/`：基于 `Go + Fiber` 的管理网关，负责聚合并转发上游应用的后台接口。
 - `deploy_shell/`：部署脚本子模块，提供 web/server 的构建、发布与通知能力。
-- `docs/`：项目文档目录，已沉淀网关架构、上游集成说明与问题记录。
+- `docs/`：项目内文档目录，已沉淀网关架构与上游集成说明；问题记录统一归档到工作区根目录 `../docs/issues/`。
 
 ## 当前能力
 
@@ -51,5 +51,4 @@ go run ./cmd/server
 
 - `docs/features/server/gateway_architecture.md`：网关结构说明
 - `docs/features/server/app_server_integration_guide.md`：上游服务接入说明
-- `docs/issues/web/stellar_provider_not_found.md`：已记录的前端 provider 问题
-
+- `../docs/issues/web/appbox/stellar_provider_not_found.md`：已归档的前端 provider 问题

@@ -1,17 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap');
-
 :root {
-  --bg-main: #f6f7ff;
-  --bg-card: #ffffff;
-  --bg-card-soft: #eef1ff;
-  --text-main: #11142a;
-  --text-dim: #5d6182;
-  --line: #ececec;
-  --brand: #0d6df9;
-  --brand-dark: #0744a6;
-  --danger: #d22848;
-  --success: #107f53;
-  --shadow: 0 20px 60px rgba(13, 28, 72, 0.1);
+  --ab-page-bg: #eaeaea;
+  --ab-surface: #f1f1f1;
+  --ab-surface-strong: #ebebeb;
+  --ab-card: #ffffff;
+  --ab-ink: #111111;
+  --ab-soft-ink: #303030;
+  --ab-muted: #6a6a6a;
+  --ab-line: #d8d8d8;
+  --ab-line-strong: #c8c8c8;
+  --ab-accent-green: #91ce6a;
+  --ab-accent-yellow: #f7e373;
+  --ab-accent-red: #ee8383;
+  --ab-shadow: 0 24px 64px rgba(17, 17, 17, 0.08);
+  --ab-radius-xl: 30px;
+  --ab-radius-lg: 22px;
+  --ab-radius-md: 16px;
 }
 
 * {
@@ -23,13 +26,20 @@ body,
 #root {
   width: 100%;
   min-height: 100%;
+}
+
+html {
+  background: var(--ab-page-bg);
+}
+
+body {
   margin: 0;
-  font-family: 'Manrope', sans-serif;
-  color: var(--text-main);
+  color: var(--ab-ink);
+  font-family: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   background:
-    radial-gradient(circle at 10% 10%, rgba(13, 109, 249, 0.16), transparent 35%),
-    radial-gradient(circle at 85% 15%, rgba(16, 127, 83, 0.1), transparent 35%),
-    var(--bg-main);
+    radial-gradient(circle at top left, rgba(145, 206, 106, 0.2), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(247, 227, 115, 0.18), transparent 24%),
+    linear-gradient(180deg, #f5f5f5 0%, var(--ab-page-bg) 100%);
 }
 
 button,
@@ -37,4 +47,14 @@ input,
 select,
 textarea {
   font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  color: var(--ab-ink);
+  background: rgba(247, 227, 115, 0.72);
 }
