@@ -1,0 +1,3 @@
+同步 AGENTS 规范并更新 deploy_shell 子模块
+
+使用工作区根目录同步器重新生成 AGENTS.md，并将 deploy_shell 子模块更新到最新提交。

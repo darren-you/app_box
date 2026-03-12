@@ -4,31 +4,46 @@
 
 - 使用中文回复。
 - 使用中文撰写文档。
-- 生成commit时使用中文。
-- 工程文档统一放在项目根目录的 `docs` 目录中。
-- `docs` 目录结构必须固定为：`docs/api`、`docs/features/app`、`docs/features/server`、`docs/features/web`、`docs/issues/app`、`docs/issues/server`、`docs/issues/web`。
-- API 文档只能放在 `docs/api`；feature 文档只能放在 `docs/features/*`；issues 文档只能放在 `docs/issues/*`。
-- 即使某个目录暂时没有文档，也必须保留该目录结构，必要时使用占位文件维持目录存在。
-- 仅在故障排查、bug 修复、线上问题定位或明确需要复盘历史问题时，优先检索 `docs/issues` 中是否已有类似记录及解决方案。
-- 对于明确的代码修改、文档修改、重构、实现新功能、纯说明类问题，不要求默认先检查仓库结构或检索 `docs/issues`。
+- 生成 commit 时使用中文。
+- 开始处理某个仓库前，优先阅读该仓库根目录 `README.md`；如果存在对应子工程 `README.md`，继续读取子工程说明后再动手。
+- 当根 `README.md`、子工程 `README.md`、`deploy_config.sh`、实际目录结构之间出现不一致时，以当前仓库实际文件和配置为准，不要死记旧规则。
+- 仅在故障排查、bug 修复、线上问题定位或明确需要复盘历史问题时，优先检索当前仓库或所属工作区 `docs/issues` 中是否已有类似记录及解决方案。
+- 对于明确的代码修改、文档修改、重构、实现新功能、纯说明类问题，不要求默认先检查 `docs/issues`。
+
+## Documentation Layout
+
+- 对于标准业务/模板仓库（通常包含 `template_app`、`template_server`、`template_web`、`docs` 中的多个目录），工程文档统一放在项目根目录的 `docs` 目录中。
+- 如果当前仓库位于 `darren_projects` 工作区内，故障/问题文档统一集中归档到工作区根目录 `docs/issues/{app,server,web}/{project}`；仓库自身 `docs` 目录不再保留 `issues` 子目录。
+- 在未采用工作区集中归档规则的情况下，`docs` 目录优先保持为：`docs/api`、`docs/features/app`、`docs/features/server`、`docs/features/web`、`docs/issues/app`、`docs/issues/server`、`docs/issues/web`。
+- 在未采用工作区集中归档规则的情况下，API 文档放在 `docs/api`；feature 文档放在 `docs/features/*`；issues 文档放在 `docs/issues/*`。
 
 ## Documentation Naming
 
-- 项目中的普通文档文件（如 `.md`、`.markdown`、`.txt`）统一使用英文小写单词加下划线命名。
-- 普通文档文件名禁止使用中文、空格、连字符或全大写形式。
+- 对新增的项目文档文件（如 `.md`、`.markdown`、`.txt`），优先使用英文小写单词加下划线命名。
 - `README.md` 作为特殊文档保留默认命名，不纳入普通文档命名规则。
+- 历史文档、外部导入资料、第三方文档、截图说明、工具资料可以保留原始命名；不要为了满足命名规则批量重命名现有文件。
+- 如果确实需要重命名已有文档，必须同时检查并更新仓库内的引用链接。
 - 文档命名示例：`project_analysis_report.md`、`font_subset_extraction_guide.md`。
+
+## Commit Message Record
+
+- 当前工作区内每个子工程根目录统一维护 `commit_message.txt`，用于记录该子工程当前这次修改对应的提交信息。
+- 每次在某个子工程完成修改后，都要覆盖写入该子工程根目录的 `commit_message.txt`，不要在文件中累积历史提交信息。
+- `commit_message.txt` 的内容必须可直接用于提交：使用中文；第一行写 commit 标题；如有补充说明，第二行留空后继续写正文。
+- 当用户要求提交某个子工程时，优先直接使用该子工程根目录 `commit_message.txt` 中已记录的内容作为 commit 信息；除非用户明确指定新的提交文案，否则不要临时改写成其他内容。
+- 如果一次任务同时修改多个子工程，需要分别覆盖各自的 `commit_message.txt`。
 
 ## Web Static Assets
 
-- Web 站点级静态资源统一放在 `<web_dir>/public/assets`。
-- favicon、logo、icon 等图标资源统一放在 `<web_dir>/public/assets/icons`，`index.html`、`site.webmanifest` 和页面代码统一使用该目录下的绝对路径引用。
-- 需要通过绝对路径直接访问的普通图片素材统一放在 `<web_dir>/public/assets/images`。
+- 对新建或准备统一整理的 Web 工程，站点级静态资源优先放在 `<web_dir>/public/assets`。
+- favicon、logo、icon 等图标资源优先放在 `<web_dir>/public/assets/icons`。
+- 需要通过绝对路径直接访问的普通图片素材优先放在 `<web_dir>/public/assets/images`。
 - 仅在资源需要被前端代码 `import` 并参与打包时，才放在 `<web_dir>/src/assets`；不要把 favicon 或共享 icon 放在 `src/assets`。
+- 如果某个现有项目已经稳定使用其他目录约定，例如 `public/icons`，则优先保持该项目既有结构，不要为了统一规则机械搬迁资源。
 
 ## Server YAML Config
 
-- `template_server` 服务运行配置统一使用 `template_server/config` 目录下的 YAML 文件，不再依赖远端 `.env.prod`、`.env.test`、`.env.production`、`.env.development` 或运行时环境变量覆盖业务配置。
+- 对包含 `template_server` 的标准服务仓库，运行配置统一使用 `template_server/config` 目录下的 YAML 文件，不再依赖远端 `.env.prod`、`.env.test`、`.env.production`、`.env.development` 或运行时环境变量覆盖业务配置。
 - `template_server/config/config.yaml` 是本地运行默认入口，也是容器内最终生效的固定配置文件名。
 - `template_server/config/config.dev.yaml` 用于 `BuildEnv=test` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
 - `template_server/config/config.prod.yaml` 用于 `BuildEnv=prod` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
@@ -107,3 +122,8 @@ sshpass -p '<password>' ssh -o StrictHostKeyChecking=no -p <port> <user>@<host>
 - `template_server` 业务配置只认 `config/config.yaml`；环境差异通过 `config/config.dev.yaml` 与 `config/config.prod.yaml` 在构建阶段收口。
 - 修改 YAML 后必须重新执行后端部署脚本，不能依赖 `docker restart`、远端 `.env` 或临时环境变量覆盖来生效。
 - 不确定线上当前值时，直接 SSH 登录部署机，优先查看当前容器内生效的 `config/config.yaml` 与镜像标签。
+
+## Sync Source
+
+- 本文件由工作区根目录 `scripts/sync_agents.sh` 根据 `agents/manifest.sh` 渲染生成。
+- 需要调整通用规则时，优先修改工作区根目录 `agents/fragments`、`agents/manifest.sh` 或对应 `agents/overrides/*.md`，不要长期直接手改各子仓库 `AGENTS.md`。
