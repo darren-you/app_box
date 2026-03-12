@@ -1,4 +1,3 @@
-改用原生交叉编译构建 server 镜像
+同步 deploy_shell 子模块到最新触发脚本版本
 
-将 template_server/Dockerfile 的 builder stage 固定到 BUILDPLATFORM，并通过 TARGETOS/TARGETARCH 生成 linux/amd64 二进制；
-同时同步 deploy_shell 到最新提交，避免 arm64 Jenkins/Colima 在 QEMU 下执行 amd64 Go 工具链时出现段错误。
+记录 deploy_shell 更新到 29f0e82 后的子模块指针变化，纳入 macOS Bash 3.2 兼容的 Jenkins HTTP 触发等待逻辑修复。
