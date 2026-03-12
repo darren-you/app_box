@@ -1,3 +1,4 @@
-调整 appbox server 测试环境宿主机端口
+改用原生交叉编译构建 server 镜像
 
-将 appbox_server 的 test 端口改为 8100，避免与 tinytext 生产端口冲突。
+将 template_server/Dockerfile 的 builder stage 固定到 BUILDPLATFORM，并通过 TARGETOS/TARGETARCH 生成 linux/amd64 二进制；
+同时同步 deploy_shell 到最新提交，避免 arm64 Jenkins/Colima 在 QEMU 下执行 amd64 Go 工具链时出现段错误。
