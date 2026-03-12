@@ -7,13 +7,14 @@
 - 生成 commit 时使用中文。
 - 开始处理某个仓库前，优先阅读该仓库根目录 `README.md`；如果存在对应子工程 `README.md`，继续读取子工程说明后再动手。
 - 当根 `README.md`、子工程 `README.md`、`deploy_config.sh`、实际目录结构之间出现不一致时，以当前仓库实际文件和配置为准，不要死记旧规则。
-- 仅在故障排查、bug 修复、线上问题定位或明确需要复盘历史问题时，优先检索当前仓库或所属工作区 `docs/issues` 中是否已有类似记录及解决方案。
-- 对于明确的代码修改、文档修改、重构、实现新功能、纯说明类问题，不要求默认先检查 `docs/issues`。
+- 仅在故障排查、bug 修复、线上问题定位或明确需要复盘历史问题时，优先检索当前仓库的 `docs/issues` 或所属工作区根目录 `docs` 中是否已有类似记录及解决方案。
+- 对于明确的代码修改、文档修改、重构、实现新功能、纯说明类问题，不要求默认先检查上述问题归档目录。
+- 在 `darren_projects` 工作区内，如用户要求“全部提交并推送”“批量 pull/push 整个工作区”这类针对全工作区的 Git 操作，优先直接使用工作区根目录 `workspace_git.sh`，不要逐仓库手动执行；除非用户明确要求只处理单个仓库，或该脚本不适用。
 
 ## Documentation Layout
 
-- 对于标准业务/模板仓库（通常包含 `template_app`、`template_server`、`template_web`、`docs` 中的多个目录），工程文档统一放在项目根目录的 `docs` 目录中。
-- 如果当前仓库位于 `darren_projects` 工作区内，故障/问题文档统一集中归档到工作区根目录 `docs/issues/{app,server,web}/{project}`；仓库自身 `docs` 目录不再保留 `issues` 子目录。
+- 对于标准业务/模板仓库（通常包含 `template_swift_app`、`template_server`、`template_web`、`docs` 中的多个目录），工程文档统一放在项目根目录的 `docs` 目录中。
+- 如果当前仓库位于 `darren_projects` 工作区内，工作区级归档文档统一放在工作区根目录 `docs/{app,server,web}/{project}`；仓库自身 `docs` 目录不再保留 `issues` 子目录。
 - `docs` 根层级只保留 `README.md`、总览、索引等入口文档；细致的专题说明、功能文档、排障记录、配置指南必须进入对应子目录，不要直接堆在 `docs` 顶层。
 - 在未采用工作区集中归档规则的情况下，`docs` 目录优先保持为：`docs/api`、`docs/features/app`、`docs/features/server`、`docs/features/web`、`docs/issues/app`、`docs/issues/server`、`docs/issues/web`。
 - 在未采用工作区集中归档规则的情况下，API 文档放在 `docs/api`；feature 文档放在 `docs/features/*`；issues 文档放在 `docs/issues/*`。
@@ -57,6 +58,8 @@
 - 当用户明确要求“部署、上线、修复线上配置并验证”时，Agent 可以直接在本地调用 `deploy_shell` 中的脚本，不必先等待 Jenkins。
 - 优先执行完整流水线；只有在明确知道只是线上 YAML 配置核对、容器现场问题或 nginx 转发问题时，才直接 SSH 登录服务器处理。
 - 执行部署后，必须补做线上验证，至少覆盖首页、健康检查和本次变更涉及的关键接口或页面。
+- `deploy_shell` 是部署标准的唯一来源，不要为历史子工程目录、旧配置路径或非标准结构继续在 `deploy_shell` 内追加兼容逻辑；发现业务仓库不符合规范时，应优先修改业务仓库本身对齐当前标准。
+- 移动端工程目录统一使用 `template_swift_app` 与 `template_android_app`；不要继续沿用 `template_app` 之类的历史命名。
 - `AGENTS.md` 中禁止写入某个具体项目专属的域名、服务器 IP、账号密码、固定容器名、固定部署目录等硬编码信息。
 - 所有部署命令、验证地址、SSH 目标都必须优先从当前项目实际存在的 `deploy_config.sh`、项目目录结构和线上返回结果中动态读取，不要把某个项目的现场信息写成通用规则。
 - `deploy_shell/shared/jenkins_profiles/mac_mini.sh` 中维护的是 Jenkins 打包机 Mac mini 的共享 SSH profile；公共加载入口位于 `deploy_shell/shared/load_jenkins_profile.sh`。
