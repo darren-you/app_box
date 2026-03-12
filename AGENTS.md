@@ -14,6 +14,7 @@
 
 - 对于标准业务/模板仓库（通常包含 `template_app`、`template_server`、`template_web`、`docs` 中的多个目录），工程文档统一放在项目根目录的 `docs` 目录中。
 - 如果当前仓库位于 `darren_projects` 工作区内，故障/问题文档统一集中归档到工作区根目录 `docs/issues/{app,server,web}/{project}`；仓库自身 `docs` 目录不再保留 `issues` 子目录。
+- `docs` 根层级只保留 `README.md`、总览、索引等入口文档；细致的专题说明、功能文档、排障记录、配置指南必须进入对应子目录，不要直接堆在 `docs` 顶层。
 - 在未采用工作区集中归档规则的情况下，`docs` 目录优先保持为：`docs/api`、`docs/features/app`、`docs/features/server`、`docs/features/web`、`docs/issues/app`、`docs/issues/server`、`docs/issues/web`。
 - 在未采用工作区集中归档规则的情况下，API 文档放在 `docs/api`；feature 文档放在 `docs/features/*`；issues 文档放在 `docs/issues/*`。
 
