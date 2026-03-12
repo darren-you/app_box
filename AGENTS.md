@@ -10,6 +10,7 @@
 - 仅在故障排查、bug 修复、线上问题定位或明确需要复盘历史问题时，优先检索当前仓库的 `docs/issues` 或所属工作区根目录 `docs` 中是否已有类似记录及解决方案。
 - 对于明确的代码修改、文档修改、重构、实现新功能、纯说明类问题，不要求默认先检查上述问题归档目录。
 - 在 `darren_projects` 工作区内，如用户要求“全部提交并推送”“批量 pull/push 整个工作区”这类针对全工作区的 Git 操作，优先直接使用工作区根目录 `workspace_git.sh`，不要逐仓库手动执行；除非用户明确要求只处理单个仓库，或该脚本不适用。
+- 在 `darren_projects` 工作区内，如需修改子工程中的 `deploy_shell` submodule，标准流程是先在工作区根目录的 `deploy_shell` 源工程完成修改并 push，再进入对应子工程中的 `deploy_shell` 执行 pull 同步最新提交，并在该子工程提交更新后的 submodule 指针；不要长期直接在子工程内嵌的 `deploy_shell` 目录脱离源工程单独维护。
 
 ## Documentation Layout
 
@@ -46,10 +47,12 @@
 ## Server YAML Config
 
 - 对包含 `template_server` 的标准服务仓库，运行配置统一使用 `template_server/config` 目录下的 YAML 文件，不再依赖远端 `.env.prod`、`.env.test`、`.env.production`、`.env.development` 或运行时环境变量覆盖业务配置。
+- 全工作区禁用 `template_server` 的 env 模式运行配置；若历史工程仍使用 `.env`、`APP_ENV`、`SERVER_PORT` 等入口，必须直接迁移到 YAML 体系，不保留双轨兼容，也不要继续新增 env fallback。
 - `template_server/config/config.yaml` 是本地运行默认入口，也是容器内最终生效的固定配置文件名。
 - `template_server/config/config.dev.yaml` 用于 `BuildEnv=test` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
 - `template_server/config/config.prod.yaml` 用于 `BuildEnv=prod` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
 - 不要再为 `template_server` 新增 `APP_ENV`、`SERVER_PORT` 等运行时环境变量覆盖逻辑。
+- 若线上容器仍依赖历史 `.env` 文件或 env 注入运行，应直接修改工程或容器部署方式收口到 YAML，并删除对应的 `.env` 入口，不要为了兼容历史继续保留旧模式。
 - 修改 `template_server/config/config.dev.yaml` 或 `template_server/config/config.prod.yaml` 后，必须通过后端 CICD 重新构建并部署，不能指望远端热改环境变量生效。
 - 修改 `server.port` 时，必须同步检查 `template_server/deploy_config.sh` 中的 `REMOTE_CONTAINER_PORT`。
 
