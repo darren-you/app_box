@@ -1,3 +1,3 @@
-同步 AGENTS 文档归档约束
+更新 deploy_shell 子模块
 
-补充 docs 顶层仅保留入口文档的规则，保持 appbox 仓库规范与工作区一致。
+同步 deploy_shell 到 5a6090c，包含 Jenkins job pull 覆盖逻辑与 deploy_jenkins 调整。
