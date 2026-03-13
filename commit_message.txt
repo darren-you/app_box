@@ -1,3 +1,3 @@
-同步 deploy_shell 子模块到最新触发脚本版本
+调整 appbox 开发代理提示并同步 AGENTS 规则
 
-记录 deploy_shell 更新到 29f0e82 后的子模块指针变化，纳入 macOS Bash 3.2 兼容的 Jenkins HTTP 触发等待逻辑修复。
+移除本地运行 template_server 的引导，改为要求通过已部署服务器环境联调，同时同步后端工程禁止本地运行的 AGENTS 规范。

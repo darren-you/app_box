@@ -3,12 +3,19 @@ import { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const WEB_NAME_PLACEHOLDER = '__APPBOX_WEB_NAME__';
+const DEFAULT_WEB_NAME = 'AppBox';
+
 function replaceStaticWebNamePlugin(webName: string): Plugin {
   let distDir = resolve(process.cwd(), 'dist');
+  const resolvedWebName = webName.trim() || DEFAULT_WEB_NAME;
+
+  const replacePlaceholdersInContent = (source: string): string =>
+    source.split(WEB_NAME_PLACEHOLDER).join(resolvedWebName);
 
   const replacePlaceholders = (filePath: string): void => {
     const source = readFileSync(filePath, 'utf8');
-    const next = source.split('%VITE_WEB_NAME%').join(webName);
+    const next = replacePlaceholdersInContent(source);
 
     if (source !== next) {
       writeFileSync(filePath, next, 'utf8');
@@ -17,7 +24,9 @@ function replaceStaticWebNamePlugin(webName: string): Plugin {
 
   return {
     name: 'replace-static-web-name',
-    apply: 'build',
+    transformIndexHtml(html) {
+      return replacePlaceholdersInContent(html);
+    },
     configResolved(config) {
       distDir = resolve(config.root, config.build.outDir);
     },
@@ -52,26 +61,29 @@ function replaceStaticWebNamePlugin(webName: string): Plugin {
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const proxyTarget = env.BMS_PROXY_TARGET || 'http://localhost:8000';
-  const webName = (env.VITE_WEB_NAME || '').trim();
+  const proxyTarget = (env.BMS_PROXY_TARGET || '').trim();
+  const rawWebName = (env.VITE_WEB_NAME || '').trim();
+  const webName = rawWebName || DEFAULT_WEB_NAME;
 
   if (command === 'build') {
-    if (!webName) {
+    if (!rawWebName) {
       throw new Error('构建失败：缺少 VITE_WEB_NAME。请通过 deploy_config.sh 中的 WEB_NAME 注入网站名称。');
     }
   }
 
   return {
-    plugins: [react(), ...(webName ? [replaceStaticWebNamePlugin(webName)] : [])],
+    plugins: [react(), replaceStaticWebNamePlugin(webName)],
     server: {
       host: true,
       port: 5173,
-      proxy: {
-        '/api': {
-          target: proxyTarget,
-          changeOrigin: true
-        }
-      }
+      proxy: proxyTarget
+        ? {
+            '/api': {
+              target: proxyTarget,
+              changeOrigin: true
+            }
+          }
+        : undefined
     }
   };
 });

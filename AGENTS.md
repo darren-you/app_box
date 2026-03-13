@@ -51,6 +51,8 @@
 - `template_server/config/config.yaml` 是本地运行默认入口，也是容器内最终生效的固定配置文件名。
 - `template_server/config/config.dev.yaml` 用于 `BuildEnv=test` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
 - `template_server/config/config.prod.yaml` 用于 `BuildEnv=prod` 的构建源配置；构建镜像时会复制为容器内的 `config/config.yaml`。
+- 对所有 `template_server` 工程，默认不要在本地直接运行服务；本地通常缺少 SQL、Mongo、Redis、对象存储等依赖，涉及运行验证、联调或故障排查时，应直接部署到服务器环境后再观察结果。
+- 当需要确认后端实际行为时，优先通过 `deploy_shell` 推到测试或目标服务器运行，不要把本地 `go run`、本地容器临时启动当成标准流程。
 - 不要再为 `template_server` 新增 `APP_ENV`、`SERVER_PORT` 等运行时环境变量覆盖逻辑。
 - 若线上容器仍依赖历史 `.env` 文件或 env 注入运行，应直接修改工程或容器部署方式收口到 YAML，并删除对应的 `.env` 入口，不要为了兼容历史继续保留旧模式。
 - 修改 `template_server/config/config.dev.yaml` 或 `template_server/config/config.prod.yaml` 后，必须通过后端 CICD 重新构建并部署，不能指望远端热改环境变量生效。
@@ -61,9 +63,13 @@
 - 当用户明确要求“部署、上线、修复线上配置并验证”时，Agent 可以直接在本地调用 `deploy_shell` 中的脚本，不必先等待 Jenkins。
 - 优先执行完整流水线；只有在明确知道只是线上 YAML 配置核对、容器现场问题或 nginx 转发问题时，才直接 SSH 登录服务器处理。
 - 执行部署后，必须补做线上验证，至少覆盖首页、健康检查和本次变更涉及的关键接口或页面。
+- 对 `template_server` 做健康检查时，优先使用已上线域名对应的接口地址验证，例如 `https://<api-domain>/api/v1/health`；不要把公网 `IP:端口` 直接当成对外健康检查地址。
+- 如果域名暂时不可达或需要排查宿主机内部连通性，可在 SSH 登录服务器后使用 `127.0.0.1:<host-port>`、容器端口或容器内地址做补充验证，但这类方式只作为排障手段，不能替代域名健康检查结论。
 - `deploy_shell` 是部署标准的唯一来源，不要为历史子工程目录、旧配置路径或非标准结构继续在 `deploy_shell` 内追加兼容逻辑；发现业务仓库不符合规范时，应优先修改业务仓库本身对齐当前标准。
 - 移动端工程目录统一使用 `template_swift_app` 与 `template_android_app`；不要继续沿用 `template_app` 之类的历史命名。
 - `AGENTS.md` 中禁止写入某个具体项目专属的域名、服务器 IP、账号密码、固定容器名、固定部署目录等硬编码信息。
+- 对 `deploy_shell` 的 Nexus Docker 凭证，优先复用 `deploy_shell/deploy_server/common.sh` 中已固化的默认配置；排查 Jenkins / Nexus 认证问题时，不要再把“重置密码”当成常规处理手段。
+- 受上一条限制，`AGENTS.md` 只说明“默认凭证以脚本和 README 为准”，不在 AGENTS 中重复展开凭证明文字面量。
 - 所有部署命令、验证地址、SSH 目标都必须优先从当前项目实际存在的 `deploy_config.sh`、项目目录结构和线上返回结果中动态读取，不要把某个项目的现场信息写成通用规则。
 - `deploy_shell/shared/jenkins_profiles/mac_mini.sh` 中维护的是 Jenkins 打包机 Mac mini 的共享 SSH profile；公共加载入口位于 `deploy_shell/shared/load_jenkins_profile.sh`。
 

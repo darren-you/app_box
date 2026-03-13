@@ -36,11 +36,18 @@
 vim config/config.yaml
 ```
 
-2. 启动：
+2. 运行验证：
 
 ```bash
-go run ./cmd/server
+BuildBranch=origin/develop BuildEnv=test \
+bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/deploy_config.sh"
 ```
+
+说明：
+
+- `template_server` 默认不在本地直接运行。
+- 如需确认后端运行行为、依赖连通性或真实配置效果，应直接部署到测试或目标服务器环境验证。
+- `config/config.yaml` 仍是仓库内的配置入口，但修改后应通过部署链路生效，不要把本地 `go run` 当成标准调试方式。
 
 ## 访问控制
 

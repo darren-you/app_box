@@ -10,11 +10,22 @@ npm install
 npm run dev
 ```
 
+开发模式下：
+
+- 页面标题未注入 `VITE_WEB_NAME` 时，默认显示为 `AppBox`。
+- 后端默认不在本地直接运行；前端联调时应通过 `BMS_PROXY_TARGET` 或 `VITE_API_BASE_URL` 指向已部署的服务器环境。
+
 前端 API 默认走同域 `/api/v1`。  
-如需临时改为其他后端，可设置：
+如需直连已部署后端，可设置：
 
 ```bash
-VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1 npm run dev
+VITE_API_BASE_URL=https://<api-domain>/api/v1 npm run dev
+```
+
+如需只覆盖 Vite dev 代理目标，可设置：
+
+```bash
+BMS_PROXY_TARGET=https://<api-domain> npm run dev
 ```
 
 ## 访问口令方式

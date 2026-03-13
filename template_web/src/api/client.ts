@@ -60,14 +60,14 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       payload = JSON.parse(rawText) as ApiResponse<T>;
     } catch {
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${rawText}`);
+        throw new Error(resolveRequestFailureMessage(response, rawText));
       }
       throw new Error('接口返回了非 JSON 响应');
     }
   }
 
   if (!response.ok || !payload || payload.code !== 200) {
-    const message = payload?.msg || `Request failed with status ${response.status}`;
+    const message = payload?.msg || resolveRequestFailureMessage(response, rawText);
     throw new Error(message);
   }
 
@@ -94,4 +94,18 @@ function normalizeApiBase(base: string): string {
     return value;
   }
   return `/${value}`;
+}
+
+function resolveRequestFailureMessage(response: Response, rawText: string): string {
+  const text = rawText.trim();
+
+  if (text) {
+    return `HTTP ${response.status}: ${text}`;
+  }
+
+  if (import.meta.env.DEV && (response.status === 404 || response.status === 500) && API_BASE.startsWith('/api')) {
+    return '本地开发未配置可用后端，请通过 BMS_PROXY_TARGET / VITE_API_BASE_URL 指向已部署服务器环境';
+  }
+
+  return `Request failed with status ${response.status}`;
 }
