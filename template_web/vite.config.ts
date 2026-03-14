@@ -61,7 +61,6 @@ function replaceStaticWebNamePlugin(webName: string): Plugin {
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const proxyTarget = (env.BMS_PROXY_TARGET || '').trim();
   const rawWebName = (env.VITE_WEB_NAME || '').trim();
   const webName = rawWebName || DEFAULT_WEB_NAME;
 
@@ -75,15 +74,7 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react(), replaceStaticWebNamePlugin(webName)],
     server: {
       host: true,
-      port: 5173,
-      proxy: proxyTarget
-        ? {
-            '/api': {
-              target: proxyTarget,
-              changeOrigin: true
-            }
-          }
-        : undefined
+      port: 5173
     }
   };
 });

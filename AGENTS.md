@@ -9,6 +9,8 @@
 - 当根 `README.md`、子工程 `README.md`、`deploy_config.sh`、实际目录结构之间出现不一致时，以当前仓库实际文件和配置为准，不要死记旧规则。
 - 仅在故障排查、bug 修复、线上问题定位或明确需要复盘历史问题时，优先检索当前仓库的 `docs/issues` 或所属工作区根目录 `docs` 中是否已有类似记录及解决方案。
 - 对于明确的代码修改、文档修改、重构、实现新功能、纯说明类问题，不要求默认先检查上述问题归档目录。
+- 对 App、Web 与其他前端工程，dev/prod 运行时统一直连对应已部署 server 的 API 域名；不要把本地启动 `template_server`、本地 `go run`、本地容器或本地 API proxy 当成前端联调默认方案。
+- 前端如需切换环境，应切换到对应测试或正式环境的已部署 API 域名，并同步补齐 CORS、网关与鉴权配置；不要把 `localhost`、`127.0.0.1`、容器内网地址或宿主机端口写成前端默认 API 地址。
 - 在 `darren_projects` 工作区内，如用户要求“全部提交并推送”“批量 pull/push 整个工作区”这类针对全工作区的 Git 操作，优先直接使用工作区根目录 `workspace_git.sh`，不要逐仓库手动执行；除非用户明确要求只处理单个仓库，或该脚本不适用。
 - 在 `darren_projects` 工作区内，如需修改子工程中的 `deploy_shell` submodule，标准流程是先在工作区根目录的 `deploy_shell` 源工程完成修改并 push，再进入对应子工程中的 `deploy_shell` 执行 pull 同步最新提交，并在该子工程提交更新后的 submodule 指针；不要长期直接在子工程内嵌的 `deploy_shell` 目录脱离源工程单独维护。
 

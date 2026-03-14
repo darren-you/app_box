@@ -34,9 +34,10 @@ func main() {
 
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: cfg.CORS.AllowOrigins,
-		AllowHeaders: "Origin, Content-Type, Accept, X-App-Key",
-		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
+		AllowOrigins:     cfg.CORS.AllowOrigins,
+		AllowHeaders:     "Origin, Content-Type, Accept, X-App-Key",
+		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
+		AllowCredentials: true,
 	}))
 	registry := service.NewProviderRegistry(cfg.Provider.Default)
 

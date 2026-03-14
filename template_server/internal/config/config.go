@@ -10,6 +10,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const defaultAllowOrigins = "https://appbox.xdarren.com,http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173"
+
 type Config struct {
 	Server   ServerConfig
 	CORS     CORSConfig
@@ -74,7 +76,7 @@ func Load() (*Config, error) {
 			WriteTimeout: parseDuration(raw.Server.WriteTimeout, 10*time.Second),
 		},
 		CORS: CORSConfig{
-			AllowOrigins: normalizeString(raw.CORS.AllowOrigins, "*"),
+			AllowOrigins: normalizeString(raw.CORS.AllowOrigins, defaultAllowOrigins),
 		},
 		Provider: ProviderConfig{
 			Default: strings.TrimSpace(raw.Provider.Default),
@@ -171,7 +173,7 @@ func defaultRawConfig() rawConfig {
 			WriteTimeout: "10s",
 		},
 		CORS: rawCORSConfig{
-			AllowOrigins: "*",
+			AllowOrigins: defaultAllowOrigins,
 		},
 		Provider: rawProviderConfig{
 			Default: "",

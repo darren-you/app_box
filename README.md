@@ -40,12 +40,8 @@ npm install
 npm run dev
 ```
 
-本地启动后端：
-
-```bash
-cd template_server
-go run ./cmd/server
-```
+- `template_web` 开发态与生产态都应直接访问已部署的 `appbox` API 域名，默认直连 `https://appbox.xdarren.com/api/v1`。
+- 前端联调不要以本地启动 `template_server` 作为前置条件；如需维护后端，应修改 `template_server` 后部署到测试或目标环境验证。
 
 ## 文档索引
 

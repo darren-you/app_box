@@ -96,8 +96,10 @@ bash ../deploy_shell/deploy_server/remote_deploy_pipeline.sh --config "$(pwd)/de
 将 `appbox_web` 的 `VITE_API_BASE_URL` 配置为：
 
 ```text
-http://localhost:8090/api/v1
+https://appbox.xdarren.com/api/v1
 ```
+
+本地 `npm run dev` 调试时也应继续直连已部署的 API 域名，不要为了前端联调去本地启动 `appbox_server`。
 
 ## Stellar provider 配置
 
@@ -124,7 +126,7 @@ provider:
   tinytext:
     enabled: true
     name: tinytext
-    base_url: http://127.0.0.1:8080/api/v1
+    base_url: https://tinytext.xdarren.com/api/v1
     gateway_header: X-Gateway-Key
     gateway_key: replace-with-a-shared-gateway-key
 ```

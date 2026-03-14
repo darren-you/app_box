@@ -1,3 +1,3 @@
-重构 appbox web 为 tinytext 风格工作台
+规范 appbox 前端直连线上 API
 
-按固定画布、灰阶工具台和双栏舞台重做 appbox 前端主框架、用户页与配置页 UI。
+移除本地代理默认方案，补齐 Gate/CORS 配置，并更新前后端联调说明为直连已部署 API 域名。

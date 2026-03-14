@@ -13,25 +13,26 @@ npm run dev
 开发模式下：
 
 - 页面标题未注入 `VITE_WEB_NAME` 时，默认显示为 `AppBox`。
-- 后端默认不在本地直接运行；前端联调时应通过 `BMS_PROXY_TARGET` 或 `VITE_API_BASE_URL` 指向已部署的服务器环境。
+- 后端默认不在本地直接运行。
+- 前端 dev/prod 默认直连 `https://appbox.xdarren.com/api/v1`，不再依赖本地 Vite API 代理。
+- 如果浏览器尚未通过线上 Gate，开发页会引导打开 `https://appbox.xdarren.com/gate/` 完成口令校验；校验完成后刷新当前本地页面即可。
 
-前端 API 默认走同域 `/api/v1`。  
-如需直连已部署后端，可设置：
+前端 API 默认走已部署的线上域名。  
+如需切换到其他已部署环境，可设置：
 
 ```bash
 VITE_API_BASE_URL=https://<api-domain>/api/v1 npm run dev
 ```
 
-如需只覆盖 Vite dev 代理目标，可设置：
+说明：
 
-```bash
-BMS_PROXY_TARGET=https://<api-domain> npm run dev
-```
+- 本地联调不要再通过 `BMS_PROXY_TARGET`、`localhost` 或本地启动 `appbox_server` 兜底。
+- 若目标环境本身需要其他鉴权方式，应由目标环境自身放行跨域与访问控制。
 
 ## 访问口令方式
 
 - 线上通过 nginx `/gate/` 页面校验访问口令。
-- 本地开发若未接 nginx，会回退到前端静态 gate 校验。
+- 本地开发默认使用线上 Gate，不再依赖本地静态 gate 或本地代理伪造 cookie。
 - 密码：`pass_the_appbox_admin`
 - 登录入口：`/gate/`
 - 网关登录接口：`POST /gate/api/login`

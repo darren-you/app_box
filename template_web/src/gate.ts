@@ -1,3 +1,5 @@
+import { buildAppboxUrl, isAppboxSameOrigin } from './runtime';
+
 const GATE_STORAGE_KEY = 'appbox_gate_access';
 const GATE_COOKIE_NAME = 'appbox_gate_access';
 const GATE_ACCESS_VALUE = 'granted';
@@ -41,6 +43,9 @@ export function hasClientGateAccess(): boolean {
   if (typeof window === 'undefined') {
     return false;
   }
+  if (!isAppboxSameOrigin()) {
+    return true;
+  }
 
   const hasLocalAccess = window.localStorage.getItem(GATE_STORAGE_KEY) === GATE_ACCESS_VALUE;
   const hasCookieAccess = document.cookie
@@ -61,12 +66,29 @@ export function clearClientGateAccess(): void {
   clearCookie(GATE_COOKIE_NAME);
 }
 
+export function requiresClientGateCheck(): boolean {
+  return isAppboxSameOrigin();
+}
+
+export function getGateApiUrl(path: string): string {
+  return buildAppboxUrl(path);
+}
+
 export function redirectToGate(nextPath = getCurrentNextPath()): void {
   if (typeof window === 'undefined') {
     return;
   }
 
-  const gateUrl = new URL('/gate/index.html', window.location.origin);
+  const gateUrl = new URL('/gate/index.html', buildAppboxUrl('/'));
   gateUrl.searchParams.set('next', sanitizeNextPath(nextPath));
-  window.location.replace(gateUrl.toString());
+
+  if (isAppboxSameOrigin()) {
+    window.location.replace(gateUrl.toString());
+    return;
+  }
+
+  const popup = window.open(gateUrl.toString(), '_blank', 'noopener,noreferrer');
+  if (!popup) {
+    window.location.assign(gateUrl.toString());
+  }
 }

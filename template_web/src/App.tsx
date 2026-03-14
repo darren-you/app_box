@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { listProviders } from './api/admin';
-import { clearClientGateAccess, clearLegacyAuthState, hasClientGateAccess, redirectToGate } from './gate';
+import {
+  clearClientGateAccess,
+  clearLegacyAuthState,
+  getGateApiUrl,
+  hasClientGateAccess,
+  redirectToGate,
+  requiresClientGateCheck,
+} from './gate';
 import { useViewportScale } from './hooks/useViewportScale';
 import UsersPage from './pages/UsersPage';
 import ConfigsPage from './pages/ConfigsPage';
@@ -105,7 +112,7 @@ export default function App(): JSX.Element | null {
 
   useEffect(() => {
     clearLegacyAuthState();
-    if (!hasClientGateAccess()) {
+    if (requiresClientGateCheck() && !hasClientGateAccess()) {
       redirectToGate();
       return;
     }
@@ -179,9 +186,9 @@ export default function App(): JSX.Element | null {
     setIsLoggingOut(true);
 
     try {
-      await fetch('/gate/api/logout', {
+      await fetch(getGateApiUrl('/gate/api/logout'), {
         method: 'POST',
-        credentials: 'same-origin',
+        credentials: 'include',
       });
     } catch {
       // 网关登出失败时走前端兜底清理，避免卡在已失效状态。
@@ -193,8 +200,14 @@ export default function App(): JSX.Element | null {
     setWorkspaceError('');
     setActiveMenu('tinytext');
     setActiveTab('users');
-    redirectToGate('/');
     setIsLoggingOut(false);
+
+    if (requiresClientGateCheck()) {
+      redirectToGate('/');
+      return;
+    }
+
+    window.location.reload();
   };
 
   const activeTabLabel = activeApp ? resolveTabLabel(activeTab) : '工作台';
