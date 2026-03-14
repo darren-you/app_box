@@ -1,20 +1,17 @@
 :root {
   --ab-page-bg: #eaeaea;
   --ab-surface: #f1f1f1;
-  --ab-surface-strong: #ebebeb;
   --ab-card: #ffffff;
   --ab-ink: #111111;
-  --ab-soft-ink: #303030;
-  --ab-muted: #6a6a6a;
+  --ab-soft-ink: #2c2c2c;
+  --ab-muted: #5e5e5e;
   --ab-line: #d8d8d8;
-  --ab-line-strong: #c8c8c8;
+  --ab-line-strong: #111111;
   --ab-accent-green: #91ce6a;
   --ab-accent-yellow: #f7e373;
   --ab-accent-red: #ee8383;
-  --ab-shadow: 0 24px 64px rgba(17, 17, 17, 0.08);
-  --ab-radius-xl: 30px;
-  --ab-radius-lg: 22px;
-  --ab-radius-md: 16px;
+  --ab-accent-orange: #ea974e;
+  --ab-accent-blue: #526188;
 }
 
 * {
@@ -25,21 +22,15 @@ html,
 body,
 #root {
   width: 100%;
-  min-height: 100%;
-}
-
-html {
-  background: var(--ab-page-bg);
+  height: 100%;
 }
 
 body {
   margin: 0;
   color: var(--ab-ink);
   font-family: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(145, 206, 106, 0.2), transparent 26%),
-    radial-gradient(circle at 82% 12%, rgba(247, 227, 115, 0.18), transparent 24%),
-    linear-gradient(180deg, #f5f5f5 0%, var(--ab-page-bg) 100%);
+  background: var(--ab-page-bg);
+  overflow: hidden;
 }
 
 button,
@@ -52,6 +43,11 @@ textarea {
 
 a {
   color: inherit;
+}
+
+::selection {
+  color: var(--ab-ink);
+  background: rgba(247, 227, 115, 0.72);
 }
 
 ::selection {

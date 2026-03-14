@@ -39,6 +39,16 @@ const defaultForm: ConfigFormState = {
   description: '',
 };
 
+function scrollWorkspaceSurfaceToTop(): void {
+  const workspaceSurface = document.querySelector<HTMLElement>('[data-appbox-page-scroll="true"]');
+  if (workspaceSurface) {
+    workspaceSurface.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 export default function ConfigsPage({ appKey }: ConfigsPageProps): JSX.Element {
   const [configs, setConfigs] = useState<AppConfig[]>([]);
   const [loading, setLoading] = useState(false);
@@ -144,7 +154,7 @@ export default function ConfigsPage({ appKey }: ConfigsPageProps): JSX.Element {
       valueType: config.valueType,
       description: config.description || '',
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollWorkspaceSurfaceToTop();
   };
 
   const handleReset = (): void => {

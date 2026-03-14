@@ -471,6 +471,10 @@ export default function UsersPage({ appKey, variant }: UsersPageProps): JSX.Elem
       {supportsPlanets && planetViewerUser && (
         <div className={styles.modalBackdrop}>
           <div className={styles.planetModal}>
+            <button className={styles.modalClose} type="button" aria-label="关闭弹窗" onClick={closePlanetViewer}>
+              <span className={styles.modalCloseLine} />
+              <span className={styles.modalCloseLine} />
+            </button>
             <div className={styles.modalHeader}>
               <div>
                 <span className={styles.metricLabel}>Planet Records</span>
@@ -559,6 +563,10 @@ export default function UsersPage({ appKey, variant }: UsersPageProps): JSX.Elem
       {supportsEditing && editor && (
         <div className={styles.modalBackdrop}>
           <div className={styles.modal}>
+            <button className={styles.modalClose} type="button" aria-label="关闭弹窗" onClick={() => setEditor(null)}>
+              <span className={styles.modalCloseLine} />
+              <span className={styles.modalCloseLine} />
+            </button>
             <div className={styles.modalHeader}>
               <div>
                 <span className={styles.metricLabel}>User Editor</span>

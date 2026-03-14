@@ -1,3 +1,3 @@
-调整 appbox 开发代理提示并同步 AGENTS 规则
+重构 appbox web 为 tinytext 风格工作台
 
-移除本地运行 template_server 的引导，改为要求通过已部署服务器环境联调，同时同步后端工程禁止本地运行的 AGENTS 规范。
+按固定画布、灰阶工具台和双栏舞台重做 appbox 前端主框架、用户页与配置页 UI。

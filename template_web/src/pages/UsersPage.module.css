@@ -1,12 +1,12 @@
 .section {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .overviewGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(320px, 1.1fr);
-  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .metricCard,
@@ -16,52 +16,45 @@
 .planetModal {
   border: 1px solid var(--ab-line);
   background: var(--ab-card);
-  box-shadow: var(--ab-shadow);
 }
 
 .metricCard,
 .searchPanel {
-  min-height: 178px;
+  min-height: 176px;
+  padding: 16px;
 }
 
 .metricCard {
   display: grid;
-  gap: 10px;
   align-content: start;
-  padding: 18px;
-  border-radius: 24px;
+  gap: 10px;
 }
 
 .metricLabel {
   color: var(--ab-muted);
   font-size: 11px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .metricValue {
-  font-size: clamp(28px, 3vw, 40px);
+  font-size: clamp(30px, 3vw, 40px);
   line-height: 1;
 }
 
 .metricFootnote,
+.panelMeta,
 .footerText,
-.panelMeta {
-  color: var(--ab-soft-ink);
-  line-height: 1.7;
-}
-
-.metricFootnote {
+.helper {
   margin: 0;
+  color: var(--ab-soft-ink);
   font-size: 13px;
+  line-height: 1.6;
 }
 
 .searchPanel {
   display: grid;
   gap: 12px;
-  padding: 18px;
-  border-radius: 24px;
-  background: linear-gradient(180deg, #fafafa 0%, #f1f1f1 100%);
 }
 
 .searchPanelHeader {
@@ -72,17 +65,27 @@
 .searchPanelTitle,
 .panelTitle {
   margin: 0;
-  font-size: 26px;
+  font-size: 28px;
   line-height: 1;
 }
 
-.textInput {
+.textInput,
+.textArea {
   width: 100%;
-  min-height: 46px;
   border: 1px solid var(--ab-line);
-  border-radius: 16px;
-  padding: 0 14px;
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
+  color: var(--ab-ink);
+}
+
+.textInput {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.textArea {
+  min-height: 120px;
+  padding: 12px;
+  resize: vertical;
 }
 
 .searchActions,
@@ -97,55 +100,58 @@
 
 .primaryButton,
 .secondaryButton,
-.inlineButton {
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 999px;
-  border: 1px solid var(--ab-line);
-  background: transparent;
+.inlineButton,
+.dangerButton {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--ab-ink);
+  background: #fff;
+  color: var(--ab-ink);
   cursor: pointer;
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
+  font: inherit;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
 .primaryButton {
   background: var(--ab-ink);
-  border-color: transparent;
   color: #fff;
 }
 
+.dangerButton {
+  border-color: #b42318;
+  color: #b42318;
+}
+
+.primaryButton:hover,
 .secondaryButton:hover,
-.inlineButton:hover {
-  transform: translateY(-1px);
-  background: var(--ab-surface);
+.inlineButton:hover,
+.dangerButton:hover {
+  background: rgba(17, 17, 17, 0.04);
 }
 
 .primaryButton:hover {
-  transform: translateY(-1px);
+  background: #2b2b2b;
 }
 
 .primaryButton:disabled,
 .secondaryButton:disabled,
-.inlineButton:disabled {
+.inlineButton:disabled,
+.dangerButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 
 .messageBar {
   margin: 0;
   padding: 14px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(238, 131, 131, 0.46);
-  background: rgba(238, 131, 131, 0.16);
+  border: 1px solid rgba(238, 131, 131, 0.55);
+  background: rgba(238, 131, 131, 0.14);
   color: #7d1e1e;
+  line-height: 1.6;
 }
 
 .panel {
-  padding: 18px;
-  border-radius: 28px;
+  padding: 16px;
 }
 
 .panelHeader,
@@ -168,8 +174,7 @@
   margin-top: 16px;
   overflow: auto;
   border: 1px solid var(--ab-line);
-  border-radius: 24px;
-  background: rgba(241, 241, 241, 0.72);
+  background: var(--ab-surface);
 }
 
 .table,
@@ -199,7 +204,7 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.94);
+  background: #fff;
   color: var(--ab-muted);
   font-size: 12px;
   letter-spacing: 0.12em;
@@ -207,7 +212,7 @@
 }
 
 .empty {
-  padding: 22px;
+  padding: 24px;
   text-align: center;
   color: var(--ab-muted);
 }
@@ -235,9 +240,8 @@
 
 .avatar,
 .avatarFallback {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
 }
 
@@ -259,9 +263,8 @@
 
 .codeValue {
   display: inline-flex;
-  max-width: 220px;
+  max-width: 240px;
   padding: 6px 10px;
-  border-radius: 999px;
   background: rgba(17, 17, 17, 0.06);
   font-family: 'SFMono-Regular', 'Consolas', monospace;
   font-size: 12px;
@@ -272,9 +275,8 @@
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
+  min-height: 24px;
+  padding: 0 8px;
   font-size: 12px;
   border: 1px solid transparent;
 }
@@ -300,13 +302,8 @@
 }
 
 .inlineButton {
-  min-height: 34px;
-  padding: 0 12px;
-}
-
-.dangerButton {
-  border-color: rgba(238, 131, 131, 0.45);
-  color: #8e2f2f;
+  min-height: 28px;
+  padding: 0 10px;
 }
 
 .footer {
@@ -316,43 +313,67 @@
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
-  padding: 20px;
-  background: rgba(17, 17, 17, 0.16);
-  backdrop-filter: blur(10px);
-  display: grid;
-  place-items: center;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 17, 17, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 24px;
 }
 
 .modal,
 .planetModal {
-  width: min(720px, 100%);
-  border-radius: 28px;
-  padding: 22px;
+  position: relative;
+  width: min(760px, calc(100vw - 48px));
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: auto;
+  background:
+    linear-gradient(var(--ab-accent-green), var(--ab-accent-green)) left top / 32px 48px no-repeat,
+    linear-gradient(var(--ab-accent-orange), var(--ab-accent-orange)) left bottom / 32px 48px no-repeat,
+    linear-gradient(var(--ab-accent-blue), var(--ab-accent-blue)) right bottom / 32px 48px no-repeat,
+    #fff;
+  padding: 48px 32px 32px;
 }
 
 .planetModal {
-  width: min(1080px, 100%);
-  max-height: min(88vh, 880px);
-  display: grid;
-  gap: 16px;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(980px, calc(100vw - 48px));
 }
 
-.planetTableWrap {
-  margin-top: 0;
-  min-height: 0;
+.modalClose {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
-.imageLink {
-  color: var(--ab-ink);
-  text-decoration-thickness: 1px;
+.modalCloseLine {
+  position: absolute;
+  left: -2px;
+  top: 7px;
+  width: 20px;
+  height: 2px;
+  background: #111;
+}
+
+.modalCloseLine:nth-child(1) {
+  transform: rotate(45deg);
+}
+
+.modalCloseLine:nth-child(2) {
+  transform: rotate(135deg);
 }
 
 .formGrid {
-  margin-top: 18px;
+  margin-top: 16px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -364,48 +385,33 @@
 }
 
 .checkboxField {
-  grid-template-columns: auto 1fr;
-  align-items: center;
+  align-content: center;
 }
 
-@media (max-width: 1220px) {
+.checkboxField input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.imageLink {
+  color: var(--ab-ink);
+  text-decoration: underline;
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.inlineButton:focus-visible,
+.dangerButton:focus-visible,
+.textInput:focus-visible,
+.textArea:focus-visible,
+.modalClose:focus-visible {
+  outline: 2px solid #2d7fff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1200px) {
   .overviewGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .searchPanel {
-    grid-column: span 2;
-  }
-}
-
-@media (max-width: 860px) {
-  .overviewGrid,
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .searchPanel {
-    grid-column: span 1;
-  }
-}
-
-@media (max-width: 640px) {
-  .metricCard,
-  .searchPanel,
-  .panel,
-  .modal,
-  .planetModal {
-    border-radius: 22px;
-  }
-
-  .panel,
-  .modal,
-  .planetModal {
-    padding: 16px;
-  }
-
-  .tableWrap,
-  .planetTableWrap {
-    border-radius: 18px;
   }
 }

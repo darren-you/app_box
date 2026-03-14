@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { listProviders } from './api/admin';
 import { clearClientGateAccess, clearLegacyAuthState, hasClientGateAccess, redirectToGate } from './gate';
+import { useViewportScale } from './hooks/useViewportScale';
 import UsersPage from './pages/UsersPage';
 import ConfigsPage from './pages/ConfigsPage';
 import styles from './App.module.css';
@@ -17,6 +18,8 @@ interface AppDefinition {
   tabs: WorkspaceTabKey[];
 }
 
+const DESIGN_WIDTH = 1920;
+const DESIGN_HEIGHT = 1080;
 const APPBOX_LOGO = '/assets/icons/appbox_1024x1024.png';
 const STELLAR_LOGO = '/assets/icons/stellar_240x240.png';
 const TINYTEXT_LOGO = '/assets/icons/tinytext_1024x1024.png';
@@ -58,13 +61,30 @@ function resolveTabDescription(tab: WorkspaceTabKey, appLabel: string): string {
   return `${appLabel} 的运行配置、值类型与更新时间。`;
 }
 
-function SideIcon(): JSX.Element {
+function renderStatusCard(
+  eyebrow: string,
+  title: string,
+  description: string,
+  action?: {
+    label: string;
+    onClick: () => void;
+  },
+  showSpinner?: boolean,
+): JSX.Element {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3" />
-      <path d="M16 17l4-5-4-5" />
-      <path d="M20 12H9" />
-    </svg>
+    <main className={styles.statusPage}>
+      <section className={styles.statusCard}>
+        <span className={styles.statusEyebrow}>{eyebrow}</span>
+        {showSpinner ? <div className={styles.statusSpinner} aria-label="正在加载" /> : null}
+        <h2>{title}</h2>
+        <p className={styles.statusText}>{description}</p>
+        {action ? (
+          <button className={styles.primaryAction} type="button" onClick={action.onClick}>
+            {action.label}
+          </button>
+        ) : null}
+      </section>
+    </main>
   );
 }
 
@@ -76,6 +96,10 @@ export default function App(): JSX.Element | null {
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
   const [workspaceError, setWorkspaceError] = useState('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { scaleLayerStyle, canvasAnchorStyle } = useViewportScale({
+    designWidth: DESIGN_WIDTH,
+    designHeight: DESIGN_HEIGHT,
+  });
 
   const activeApp = availableApps.find((item) => item.key === activeMenu) || availableApps[0] || null;
 
@@ -126,13 +150,13 @@ export default function App(): JSX.Element | null {
           }
           return nextApps[0].key;
         });
-      } catch (e) {
+      } catch (error) {
         if (cancelled) {
           return;
         }
+
         setAvailableApps([]);
-        const message = e instanceof Error ? e.message : '加载工作台失败';
-        setWorkspaceError(message);
+        setWorkspaceError(error instanceof Error ? error.message : '加载工作台失败');
       } finally {
         if (!cancelled) {
           setLoadingWorkspace(false);
@@ -182,209 +206,224 @@ export default function App(): JSX.Element | null {
 
     return activeApp.tabs.map((tab) => resolveTabLabel(tab)).join(' / ');
   }, [activeApp]);
+  const workspaceModeText = activeApp?.userVariant === 'tinytext' ? '只读视图' : '完整管理';
 
   if (!hasCheckedAccess) {
     return null;
   }
 
   if (loadingWorkspace) {
-    return (
-      <main className={styles.statusPage}>
-        <section className={styles.statusCard}>
-          <span className={styles.shellEyebrow}>APPBOX WORKSPACE</span>
-          <div className={styles.statusSpinner} aria-label="正在加载" />
-          <h2>正在同步工作台</h2>
-          <p>正在读取可用 provider 与访问状态，请稍候。</p>
-        </section>
-      </main>
+    return renderStatusCard(
+      'APPBOX WORKSPACE',
+      '正在同步工作台',
+      '正在读取可用 provider 与访问状态，请稍候。',
+      undefined,
+      true,
     );
   }
 
   if (workspaceError) {
-    return (
-      <main className={styles.statusPage}>
-        <section className={styles.statusCard}>
-          <span className={styles.shellEyebrow}>APPBOX WORKSPACE</span>
-          <h2>工作台加载失败</h2>
-          <p>{workspaceError}</p>
-          <button
-            className={styles.primaryAction}
-            type="button"
-            onClick={() => window.location.reload()}
-          >
-            重新加载
-          </button>
-        </section>
-      </main>
+    return renderStatusCard(
+      'APPBOX WORKSPACE',
+      '工作台加载失败',
+      workspaceError,
+      {
+        label: '重新加载',
+        onClick: () => window.location.reload(),
+      },
     );
   }
 
   if (!activeApp) {
-    return (
-      <main className={styles.statusPage}>
-        <section className={styles.statusCard}>
-          <span className={styles.shellEyebrow}>APPBOX WORKSPACE</span>
-          <h2>无可用应用</h2>
-          <p>当前环境没有已启用且受前端支持的 provider。</p>
-          <button
-            className={styles.primaryAction}
-            type="button"
-            onClick={() => {
-              void handleLogout();
-            }}
-          >
-            返回登录
-          </button>
-        </section>
-      </main>
+    return renderStatusCard(
+      'APPBOX WORKSPACE',
+      '无可用应用',
+      '当前环境没有已启用且受前端支持的 provider。',
+      {
+        label: '返回登录',
+        onClick: () => {
+          void handleLogout();
+        },
+      },
     );
   }
 
   return (
-    <div className={styles.layout}>
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarTop}>
-          <section className={styles.brandCard}>
-            <div className={styles.brandRow}>
-              <img className={styles.brandLogo} src={APPBOX_LOGO} alt="AppBox Logo" />
-              <div className={styles.brandText}>
-                <span className={styles.brandEyebrow}>APPBOX</span>
-                <strong className={styles.brandTitle}>Provider Workspace</strong>
-              </div>
-            </div>
-            <p className={styles.brandDescription}>
-              用统一的后台壳层接管多应用 provider，保持轻量、清晰、可切换。
-            </p>
-            <div className={styles.providerStats}>
-              <article className={styles.providerStat}>
-                <strong className={styles.providerStatValue}>{String(availableApps.length).padStart(2, '0')}</strong>
-                <span className={styles.providerStatLabel}>已启用 Provider</span>
-              </article>
-              <article className={styles.providerStat}>
-                <strong className={styles.providerStatValue}>{String(activeApp.tabs.length).padStart(2, '0')}</strong>
-                <span className={styles.providerStatLabel}>当前可用页面</span>
-              </article>
-            </div>
-          </section>
-
-          <section className={styles.menuSection}>
-            <span className={styles.menuSectionLabel}>应用列表</span>
-            <nav className={styles.menuList}>
-              {availableApps.map((item) => (
-                <button
-                  key={item.key}
-                  className={`${styles.menuButton} ${activeMenu === item.key ? styles.activeMenu : ''}`}
-                  type="button"
-                  onClick={() => {
-                    setActiveMenu(item.key);
-                    setActiveTab(item.tabs[0]);
-                  }}
-                >
-                  <div className={styles.menuButtonHeader}>
-                    <div className={styles.menuLabelGroup}>
-                      <span className={styles.menuGlyph}>
-                        <img className={styles.appLogo} src={item.logo} alt={`${item.label} Logo`} />
-                      </span>
-                      <span className={styles.menuLabel}>{item.label}</span>
-                    </div>
-                    <span className={styles.menuMeta}>{String(item.tabs.length).padStart(2, '0')}</span>
-                  </div>
-                  <p className={styles.menuDescription}>{item.description}</p>
-                </button>
-              ))}
-            </nav>
-          </section>
+    <main className={styles.page}>
+      <header className={styles.fixedHeader}>
+        <div className={styles.brand}>
+          <img className={styles.brandLogo} src={APPBOX_LOGO} alt="AppBox Logo" />
+          <div className={styles.brandText}>
+            <span className={styles.brandEyebrow}>AppBox Workspace</span>
+            <p className={styles.brandTitle}>多应用后台统一入口</p>
+          </div>
         </div>
 
-        <div className={styles.sidebarBottom}>
+        <div className={styles.headerActions}>
+          <span className={styles.headerBadge}>Gate 已放行</span>
+          <span className={`${styles.headerBadge} ${styles.headerBadgeAccent}`}>{workspaceBadgeText}</span>
           <button
-            className={styles.logoutButton}
+            className={styles.headerButton}
             disabled={isLoggingOut}
             type="button"
             onClick={() => {
               void handleLogout();
             }}
           >
-            <span className={styles.logoutIcon}>
-              <SideIcon />
-            </span>
-            <span>{isLoggingOut ? '退出中...' : '退出登录'}</span>
+            {isLoggingOut ? '退出中...' : '退出登录'}
           </button>
-          <p className={styles.logoutHint}>访问已通过 Gate 校验，退出后会回到 `/gate/` 入口。</p>
         </div>
-      </aside>
+      </header>
 
-      <main className={styles.content}>
-        <header className={styles.shellHeader}>
-          <div className={styles.shellHeaderMeta}>
-            <span className={styles.shellEyebrow}>APPBOX WORKSPACE</span>
-            <div className={styles.shellTitleRow}>
-              <h1 className={styles.shellTitle}>多应用后台统一入口</h1>
-              <div className={styles.shellBadges}>
-                <span className={styles.badge}>Gate 已放行</span>
-                <span className={`${styles.badge} ${styles.badgeAccent}`}>{workspaceBadgeText}</span>
-              </div>
-            </div>
-            <p className={styles.shellDescription}>
-              参考 TinyText 的灰底纸面化风格重排布局，让 provider 切换、数据操作与状态感知保持在同一层级。
-            </p>
-          </div>
-        </header>
+      <div className={styles.viewport}>
+        <div className={styles.scaleLayer} style={scaleLayerStyle}>
+          <div className={styles.canvas} style={canvasAnchorStyle}>
+            <div className={styles.headerSpacer} aria-hidden="true" />
 
-        <section className={styles.heroPanel}>
-          <div className={styles.heroIntro}>
-            <span className={styles.heroEyebrow}>当前工作区</span>
-            <div className={styles.heroHead}>
-              <div className={styles.heroLogoWrap}>
-                <img className={styles.heroLogo} src={activeApp.logo} alt={`${activeApp.label} Logo`} />
-              </div>
-              <div className={styles.heroTextGroup}>
-                <h2 className={styles.heroTitle}>{activeApp.label}</h2>
-                <p className={styles.heroSummary}>{activeApp.description}</p>
-              </div>
-            </div>
-
-            <div className={styles.tabRail}>
-              {activeApp.tabs.map((tab) => (
-                <button
-                  key={tab}
-                  className={`${styles.tabButton} ${activeTab === tab ? styles.activeTab : ''}`}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {resolveTabLabel(tab)}
+            <section className={styles.toolbar} aria-label="工作台工具栏">
+              <div className={styles.toolbarGroup}>
+                <button type="button" className={styles.toolbarLabelButton}>
+                  应用
                 </button>
-              ))}
-            </div>
-          </div>
+                <div className={styles.toolbarRail}>
+                  {availableApps.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`${styles.toolbarChip} ${activeMenu === item.key ? styles.activeMenu : ''}`}
+                      onClick={() => {
+                        setActiveMenu(item.key);
+                        setActiveTab(item.tabs[0]);
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div className={styles.heroStats}>
-            <article className={styles.heroCard}>
-              <span className={styles.heroCardLabel}>当前页面</span>
-              <strong className={styles.heroCardValue}>{activeTabLabel}</strong>
-              <p className={styles.heroCardText}>{activeTabDescription}</p>
-            </article>
-            <article className={styles.heroCard}>
-              <span className={styles.heroCardLabel}>已启用 Provider</span>
-              <strong className={styles.heroCardValue}>{availableApps.length}</strong>
-              <p className={styles.heroCardText}>按后端 `/admin/providers` 动态返回结果渲染。</p>
-            </article>
-            <article className={styles.heroCard}>
-              <span className={styles.heroCardLabel}>当前能力</span>
-              <strong className={styles.heroCardValue}>{workspaceBadgeText}</strong>
-              <p className={styles.heroCardText}>界面只展示当前 provider 允许的页面集合。</p>
-            </article>
-          </div>
-        </section>
+              <div className={styles.toolbarSummary}>
+                <div className={styles.toolbarGroup}>
+                  <button type="button" className={styles.toolbarLabelButton}>
+                    页面
+                  </button>
+                  <div className={styles.toolbarRail}>
+                    {activeApp.tabs.map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        className={`${styles.toolbarChip} ${activeTab === tab ? styles.activeTab : ''}`}
+                        onClick={() => setActiveTab(tab)}
+                      >
+                        {resolveTabLabel(tab)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        <section className={styles.pageSurface}>
-          {activeTab === 'users' ? (
-            <UsersPage key={`${activeApp.key}-users`} appKey={activeApp.key} variant={activeApp.userVariant} />
-          ) : (
-            <ConfigsPage key={`${activeApp.key}-configs`} appKey={activeApp.key} />
-          )}
-        </section>
-      </main>
-    </div>
+            <section className={styles.stage}>
+              <aside className={styles.leftPanel}>
+                <section className={styles.summaryCard}>
+                  <div className={styles.summaryHead}>
+                    <span className={styles.summaryLogoWrap}>
+                      <img className={styles.summaryLogo} src={activeApp.logo} alt={`${activeApp.label} Logo`} />
+                    </span>
+                    <div className={styles.summaryTitleBlock}>
+                      <span className={styles.panelEyebrow}>当前 Provider</span>
+                      <h2 className={styles.summaryTitle}>{activeApp.label}</h2>
+                    </div>
+                  </div>
+
+                  <p className={styles.summaryDescription}>{activeApp.description}</p>
+
+                  <div className={styles.summaryMetaGrid}>
+                    <article className={styles.summaryMetaItem}>
+                      <span className={styles.summaryMetaLabel}>已启用 Provider</span>
+                      <strong className={styles.summaryMetaValue}>{availableApps.length}</strong>
+                    </article>
+                    <article className={styles.summaryMetaItem}>
+                      <span className={styles.summaryMetaLabel}>当前页面</span>
+                      <strong className={styles.summaryMetaValue}>{activeApp.tabs.length}</strong>
+                    </article>
+                  </div>
+                </section>
+
+                <section className={styles.providerStack}>
+                  {availableApps.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`${styles.providerCard} ${activeMenu === item.key ? styles.providerCardActive : ''}`}
+                      onClick={() => {
+                        setActiveMenu(item.key);
+                        setActiveTab(item.tabs[0]);
+                      }}
+                    >
+                      <div className={styles.providerCardHeader}>
+                        <div className={styles.providerCardInfo}>
+                          <img className={styles.providerCardLogo} src={item.logo} alt="" aria-hidden="true" />
+                          <h3 className={styles.providerCardTitle}>{item.label}</h3>
+                        </div>
+                        <span className={styles.providerCardCount}>{String(item.tabs.length).padStart(2, '0')}</span>
+                      </div>
+                      <p className={styles.providerCardDescription}>{item.description}</p>
+                    </button>
+                  ))}
+                </section>
+
+                <section className={styles.workspaceNote}>
+                  <span className={styles.panelEyebrow}>工作台说明</span>
+                  <p className={styles.workspaceNoteText}>
+                    当前布局遵循 TinyText 总结出的固定画布工作台语言，强调灰阶主色、黑色主动作和低饱和结构色块。
+                  </p>
+                  <ul className={styles.noteList}>
+                    <li>顶部工具栏负责切换应用与页面。</li>
+                    <li>左侧维持 provider 上下文与能力概览。</li>
+                    <li>右侧集中承载当前页面的实际操作与数据。</li>
+                  </ul>
+                </section>
+              </aside>
+
+              <div className={styles.divider} aria-hidden="true" />
+
+              <section className={styles.rightPanel}>
+                <div className={styles.rightPanelHeader}>
+                  <div>
+                    <span className={styles.panelEyebrow}>当前页面</span>
+                    <h1 className={styles.panelTitle}>
+                      {activeApp.label} · {activeTabLabel}
+                    </h1>
+                    <p className={styles.panelDescription}>{activeTabDescription}</p>
+                  </div>
+
+                  <div className={styles.panelBadges}>
+                    <span className={styles.headerBadge}>Provider {activeApp.key}</span>
+                    <span className={`${styles.headerBadge} ${styles.headerBadgeAccent}`}>{workspaceModeText}</span>
+                  </div>
+                </div>
+
+                <div className={styles.rightPanelScroll} data-appbox-page-scroll="true">
+                  <div className={styles.pageSurface}>
+                    {activeTab === 'users' ? (
+                      <UsersPage key={`${activeApp.key}-users`} appKey={activeApp.key} variant={activeApp.userVariant} />
+                    ) : (
+                      <ConfigsPage key={`${activeApp.key}-configs`} appKey={activeApp.key} />
+                    )}
+                  </div>
+                </div>
+              </section>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <footer className={styles.fixedFooter}>
+        <p className={styles.footerText}>
+          AppBox Workspace · 固定画布工作台布局 · {workspaceBadgeText}
+        </p>
+      </footer>
+    </main>
   );
 }
